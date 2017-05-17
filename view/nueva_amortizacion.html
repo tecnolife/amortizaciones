@@ -1,0 +1,439 @@
+{include="header"}
+
+{if="$fsc->amortizacion"}
+<div class="container-fluid">
+
+   <!--TABLA CON LAS LÍNEAS DE LA AMORTIZACIÓN-->
+   {if="isset($_POST['periodos'])"}
+   {if="$_POST['periodos'] != 0"}
+      
+   <div class="row">
+      <div class="col-sm-6">
+         <div class="page-header">
+            <h1>Líneas de amortización sobre<small> {$_POST['descripcion']}</small></h1>
+         </div>
+      </div>
+      <div class="col-sm-6">
+         <div class="page-header">
+            <h1><small>Desde el {$_POST['fecha_inicio']} hasta el {$fsc->fecha_fin}</small></h1>
+         </div>
+      </div>
+   </div>
+   <br/>
+
+   <form action="index.php?page=amortizaciones&nueva=true" method="post" class="form">
+      <div class="table-responsive">
+         <table class="table table-hover">      
+            <thead>
+               <tr>
+                  <th>Artículo</th>
+                  <th width="150" class="text-right">Tipo</th>
+                  <th width="200" class="text-right">Cantidad total a amortizar</th>
+                  <th width="150" class="text-right">Valor Residual</th>
+                  <th width="150" class="text-right">Años</th>
+                  <th width="150" class="text-right">Fecha Inicio</th>
+                  <th width="150" class="text-right">Fecha Final</th>
+               </tr>
+            </thead>
+            <input name="id_factura" class="form-control hidden" value="{$fsc->amortizacion->idfactura}" readonly/>
+            <tr>
+               <td>
+                  <input name="descripcion" class="form-control" value="{$_POST['descripcion']}" readonly/>
+               </td>
+               <td class="text-right">
+                  <input name="tipo" class="form-control text-right" value="{$_POST['tipo']}" readonly/>
+               </td>
+               <td class="text-right">
+                  <input name="valor" class="form-control text-right" value="{$_POST['valor']}" readonly/>
+               </td>
+               <td class="text-right">
+                  <input name="residual" class="form-control text-right" value="{$_POST['residual']}" readonly/>
+               </td>
+               <td class="info">
+                  <input name="periodos" class="form-control text-right" value="{$_POST['periodos']}" readonly/>
+               </td>
+               <td>
+                  <input name="fecha_inicio" class="form-control text-right" value="{$_POST['fecha_inicio']}" readonly/>
+               </td>
+               <td>
+                  <input name="fecha_fin" class="form-control text-right" value="{$fsc->fecha_fin}" readonly/>
+               </td>
+            </tr>
+         </table>
+      </div>
+
+      <div class="table-responsive">
+         <table class="table table-hover">
+            <thead>
+               <tr>
+                  <th width="150">Año Fiscal</th>
+                  <th>Artículo</th>
+                  <th width="150" class="text-right">Cantidad a amortizar</th>
+               </tr>
+            </thead>
+
+            {loop="$fsc->lineas"} <!--TABLA LINEASAMORTIZACIONES-->
+            <tr>
+               <td>
+                  <input name="ano_{$key}" class="form-control" value="{$key}" readonly/>
+               </td>
+               <td>
+                  <input name="descripcion_{$key}" class="form-control" value="{$_POST['descripcion']}" readonly/>
+               </td>
+               <td class="text-right">
+                  <input name="cantidad_{$key}" class="form-control"value="{$value}"/>
+               </td>
+            </tr>
+            {/loop}            
+         </table>
+      </div>
+
+      <div class="col-sm-12 text-right">
+         <button type="submit" class="btn btn-sm btn-primary">
+            <span class="glyphicon glyphicon-floppy-disk"></span>&nbsp; Guardar...
+         </button>
+      </div>            
+   </form> 
+   {/if}
+   {/if}
+   
+   <!--CABECERA DE LA PÄGINA-->
+   <div class="row">
+      <div class="col-sm-6">
+         <div class="page-header">
+            <h1>Nueva amortización en <small>{$fsc->amortizacion->codigo}</small></h1>
+         </div>
+      </div>
+      <div class="col-sm-3">
+         <div class="page-header">
+            <h1><small>{$fsc->amortizacion->nombre}</small></h1>
+         </div>
+      </div>
+      <div class="col-sm-3">
+         <div class="page-header">
+            <h1><small>{$fsc->amortizacion->fecha}</small></h1>
+         </div>
+      </div>
+   </div>
+
+   <!--ADVERTENCIA-->
+   <div class="row">
+      <div class="col-sm-12">
+         <div class="panel panel-danger">
+            <div class="panel-heading">
+               <h3 class="panel-title"><b>No genera asientos contables</b></h3>
+            </div>
+         </div>
+      </div>
+   </div>
+   
+   <!--TABLA CON LAS LÍNEAS DE LA FACTURA-->
+   
+   <div class="row">
+      <div class="col-sm-12">
+         <div class="panel panel-warning">
+            <div class="panel-heading">
+               <h3 class="panel-title">Aviso a la hora de crear amortizaciones</h3>
+            </div>
+            <div class="panel-body">
+               Si vamos a generar los asientos contable correspondientes, debemos tener en cuenta que se deben cambiar 
+               las subcuentas pertenecientes al artículo que vamos a amortizar.
+               <br/>
+               <b>Compras</b> se debe poner una correspondiente al <b>epígrafe 21</b>, por ejemplo el 213, maquinaria, o el 216, mobiliario.
+            </div>
+         </div>
+      </div>
+   </div>
+   
+   <div class="row">
+      <div class="col-sm-12">
+         <div class="panel panel-primary">
+            <div class="panel-heading">
+               <h3 class="panel-title">Amortizar sobre cada artículo por separado</h3>
+            </div>
+            <div class="panel-body">
+               <div class="table-responsive">
+                  <table class="table table-hover">
+                     <thead>
+                        <tr>
+                           <th>Artículo</th>
+                           <!--Tipo permanece oculto hasta que se crean más metodos de amortización, por porcentaje anual, por ejemplo-->
+                           <th width="150" class="text-right hidden">Tipo</th>
+                           <th width="150" class="text-right">Precio</th>
+                           <th width="150" class="text-right">Valor Residual</th>
+                           <th width="150" class="text-right">Años</th>
+                           <th width="150" class="text-right">Fecha Inicio</th>
+                           <!--Fecha final permanece oculta hasta que al sumar un periodo la fecha final se actualice instantaneamente-->
+                           <th width="150" class="text-right hidden">Fecha Final</th>
+                           <th width="150" class="text-right"></th>
+                        </tr>
+                     </thead>
+                     {loop="$fsc->amortizacion->get_lineas()"}
+                     <form action="{$fsc->url()}&id={$_REQUEST['id']}" method="post" class="form">
+                        <tr>
+                           <td>
+                              <input class="form-control" name="descripcion" value="{$value->referencia} {$value->descripcion}"/>
+                           </td>
+                           <!--Tipo permanece oculto hasta que se crean más metodos de amortización, por porcentaje anual, por ejemplo-->
+                           <td class="text-right hidden">
+                              <select name="tipo" class="form-control">
+                                 <option value="constante">Constante</option>
+                                 <option value="degresiva">Degresiva</option>
+                                 <option value="progresiva">Progresiva</option>
+                              </select>
+                           </td>
+                           <td class="text-right">
+                              <input name="valor" class="form-control text-right" value="{$value->pvpunitario}"/>
+                           </td>
+                           <td class="text-right">
+                              <input name="residual" value="0" min="0" class="form-control text-right"/>
+                           </td>
+                           <td class="info">
+                              <input type="number" name="periodos" value="0" min="0" max="200" step="any" class="form-control text-right"/>
+                           </td>
+                           <td>
+                              <input type="text" name="fecha_inicio" value="{$fsc->fecha}" class="form-control datepicker text-right"/>
+                           </td>
+                           <!--Fecha final permanece oculta hasta que al sumar un periodo la fecha final se actualice instantaneamente-->
+                           <td class="hidden">
+                              <input type="text" name="fecha_final" value="{$fsc->today()}" class="form-control datepicker text-right"/>
+                           </td>
+                           <td class="text-right">
+                              <button type="submit" class="btn btn-sm btn-success">
+                                 Generar líneas
+                              </button>
+                           </td>
+                        </tr>
+                     </form>
+                     {/loop}
+                  </table>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+   
+   <div class="row">
+      <div class="col-sm-12">
+         <div class="panel panel-primary">
+            <div class="panel-heading">
+               <h3 class="panel-title">Amortizar sobre el valor completo de la factura</h3>
+            </div>
+            <div class="panel-body">
+               <div class="table-responsive">
+                  <table class="table table-hover">      
+                     <thead>
+                        <tr>
+                           <th>Factura</th>
+                           <!--Tipo permanece oculto hasta que se crean más metodos de amortización, por porcentaje anual, por ejemplo-->
+                           <th width="150" class="text-right hidden">Tipo</th>
+                           <th width="150" class="text-right">Neto</th>
+                           <th width="150" class="text-right">Valor Residual</th>
+                           <th width="150" class="text-right">Años</th>
+                           <th width="150" class="text-right">Fecha Inicio</th>
+                           <!--Fecha final permanece oculta hasta que al sumar un periodo la fecha final se actualice instantaneamente-->
+                           <th width="150" class="text-right hidden">Fecha Final</th>
+                           <th width="150" class="text-right"></th>
+                        </tr>
+                     </thead>
+                     <form action="{$fsc->url()}&id={$_REQUEST['id']}" method="post" class="form">
+                        <tr>
+                           <td>
+                              <input class="form-control" name="descripcion" value="{$fsc->amortizacion->codigo}"/>
+                           </td>
+                           <!--Tipo permanece oculto hasta que se crean más metodos de amortización, por porcentaje anual, por ejemplo-->
+                           <td class="text-right hidden">
+                              <select name="tipo" class="form-control">
+                                 <option value="constante">Constante</option>
+                                 <option value="degresiva">Degresiva</option>
+                                 <option value="progresiva">Progresiva</option>
+                              </select>
+                           </td>
+                           <td class="text-right">
+                              <input name="valor" class="form-control text-right" value="{$fsc->amortizacion->neto}"/>
+                           </td>
+                           <td class="text-right">
+                              <input name="residual" value="0" min="0" class="form-control text-right"/>
+                           </td>
+                           <td class="info">
+                              <input type="number" name="periodos" value="0" min="0" max="200" step="any" class="form-control text-right"/>
+                           </td>
+                           <td>
+                              <input type="text" name="fecha_inicio" value="{$fsc->fecha}" class="form-control datepicker text-right"/>
+                           </td>
+                           <!--Fecha final permanece oculta hasta que al sumar un periodo la fecha final se actualice instantaneamente-->
+                           <td class="hidden">
+                              <input type="text" name="fecha_final" value="{$fsc->today()}" class="form-control datepicker text-right"/>
+                           </td>
+                           <td class="text-right">
+                              <button type="submit" class="btn btn-sm btn-success">
+                                 Generar líneas
+                              </button>
+                           </td>
+                        </tr>
+                     </form>
+
+                  </table>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <div class="row">
+      <div class="col-sm-12">
+         <div class="page-header">
+            <h2>Tabla de amortizaciones: Estimación Directa Simplificada</h2>
+         </div>
+      </div>
+   </div>
+   
+   <div class="table-responsive">
+               <table class="table table-hover">
+                  
+                  <thead>
+                     <tr>
+                        <th>Tipo de inversiones o elementos patrimoniales</th>
+                        <th width="200" class="text-right">Coeficiente lineal máximo (%)</th>
+                        <th width="200" class="text-right">Período máximo (años)</th>
+                     </tr>
+                  </thead>
+                  
+                  <tr>
+                     <td>
+                        <div>Edificios y otras construcciones</div>
+                     </td>
+                     <td>
+                        <div class="text-right">3%</div>
+                     </td>
+                     <td>
+                        <div class="text-right">68</div>
+                     </td>
+                  </tr>
+                  
+                  <tr>
+                     <td>
+                        <div>Instalaciones, mobiliario, enseres y resto del inmovilizado material</div>
+                     </td>
+                     <td>
+                        <div class="text-right">10%</div>
+                     </td>
+                     <td>
+                        <div class="text-right">20</div>
+                     </td>
+                  </tr>
+                  
+                  <tr>
+                     <td>
+                        <div>Maquinaria</div>
+                     </td>
+                     <td>
+                        <div class="text-right">12%</div>
+                     </td>
+                     <td>
+                        <div class="text-right">18</div>
+                     </td>
+                  </tr>
+                  
+                  <tr>
+                     <td>
+                        <div>Elementos de Transporte</div>
+                     </td>
+                     <td>
+                        <div class="text-right">16%</div>
+                     </td>
+                     <td>
+                        <div class="text-right">14</div>
+                     </td>
+                  </tr>
+                  
+                  <tr>
+                     <td>
+                        <div>Equipos para tratamiento de la información y sistemas y programas informáticos</div>
+                     </td>
+                     <td>
+                        <div class="text-right">26%</div>
+                     </td>
+                     <td>
+                        <div class="text-right">10</div>
+                     </td>
+                  </tr>
+                  
+                  <tr>
+                     <td>
+                        <div>Útiles y herramientas</div>
+                     </td>
+                     <td>
+                        <div class="text-right">30%</div>
+                     </td>
+                     <td>
+                        <div class="text-right">8</div>
+                     </td>
+                  </tr>
+                  
+                  <tr>
+                     <td>
+                        <div>Ganado vacuno, porcino, ovino y caprino</div>
+                     </td>
+                     <td>
+                        <div class="text-right">16%</div>
+                     </td>
+                     <td>
+                        <div class="text-right">14</div>
+                     </td>
+                  </tr>
+                  
+                  <tr>
+                     <td>
+                        <div>Ganado equino y frutales no cítricos</div>
+                     </td>
+                     <td>
+                        <div class="text-right">8%</div>
+                     </td>
+                     <td>
+                        <div class="text-right">25</div>
+                     </td>
+                  </tr>
+                  
+                  <tr>
+                     <td>
+                        <div>Frutales cítricos y viñedos</div>
+                     </td>
+                     <td>
+                        <div class="text-right">4%</div>
+                     </td>
+                     <td>
+                        <div class="text-right">50</div>
+                     </td>
+                  </tr>
+                  
+                  <tr>
+                     <td>
+                        <div>Olivar</div>
+                     </td>
+                     <td>
+                        <div class="text-right">2%</div>
+                     </td>
+                     <td>
+                        <div class="text-right">100</div>
+                     </td>
+                  </tr>
+                  
+               </table>
+            </div>
+   
+</div>
+
+{else}
+<div class="container-fluid">
+   <div class="row">
+      <div class="col-sm-12">
+         <div class="page-header">
+            <h1>No se ha encontrado nada.</h1>
+         </div>
+      </div>
+   </div>
+</div>
+{/if}
+
+{include="footer"}

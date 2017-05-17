@@ -1,0 +1,353 @@
+{include="header"}
+
+{if="$fsc->factura"}
+
+<script type="text/javascript">
+   
+   $(document).ready(function () {
+      $('#b_eliminar').click(function (event) {
+         event.preventDefault();
+         $('#modal_eliminar').modal('show');
+      });
+      $('#b_vender').click(function (event) {
+         event.preventDefault();
+         $('#modal_vender').modal('show');
+      });
+      $('#b_contabilizar').click(function (event) {
+         event.preventDefault();
+         $('#modal_contabilizar').modal('show');
+      });
+   });
+</script>
+
+<div class="container-fluid">
+   <form action="index.php?page=amortizaciones&editar=true" method="post" class="form">
+      
+      <!--RECOMENDACIONES
+      Los botones de guardar, eliminar, vender... deberían mostrar un pop-up con un diálogo de advertencia, como ocurre
+      cuando eliminas una factura, de esta forma los botones de anular y eliminar quedarían unidos en uno solo-->
+      
+      <div class="row">
+         <div class="col-xs-12 text-right">
+            <div class="btn-group">
+               <a id="b_eliminar" class="btn btn-sm btn-danger">
+                  <span class="glyphicon glyphicon-trash"></span>
+                  <span class="hidden-sm hidden-xs">&nbsp;Eliminar</span>
+               </a>
+               <!--Al realizar la venta debemos tener en cuenta si existe el apunte contable correspondiente a esa amortización en el año actual,
+               si es así, el apunte contable debe ser modificado, para que muestre solo lo que se ha amortizado este año
+               y si no está creado, pues se crea con lo que hemos amortizado a lo largo de este año-->
+               <a id="b_vender" class="btn btn-sm btn-warning">
+                  <span class="glyphicon glyphicon-shopping-cart"></span>
+                  <span class="hidden-sm hidden-xs">&nbsp;Vender</span>
+               </a>
+               <!--Estamos cogiendo el año que corresponde a la fecha de hoy, lo que significa, que si intentamos hacer la contabilización en enero,
+               por ejemplo, nos hara la de ese año y no la del anterior
+               Lo ideal sería coger el ejercicio fiscal actual, pero en realidad no se como hacerlo, ¿si hay dos ejercicios fiscales abiertos?
+               Otra opción sería que al contabilizar, te permita elegir que año contabilizar, el actual o el anterior-->
+               <!--Quiza sea recomendable crear dos botones, uno para marcar como amortizada y otro para crear las cuentas contables-->
+               <a id="b_contabilizar" class="btn btn-sm btn-success" href="index.php?page=amortizaciones&count={$fsc->amortizacion->id_amortizacion}&year={$fsc->today()}">
+                  <span class="glyphicon glyphicon-save"></span>
+                  <span class="hidden-sm hidden-xs">&nbsp;Contabilizar</span>
+               </a>
+               <button class="btn btn-sm btn-primary" type="submit">
+                  <span class="glyphicon glyphicon-floppy-disk"></span>
+                  <span class="hidden-xs">&nbsp;Guardar</span>
+               </button>
+            </div>
+         </div>
+      </div>
+
+      <!--CABECERA DE LA PÄGINA-->
+      <div class="row page-header">
+         <div class="col-md-6">
+            <div>
+               <h1>Amortización sobre la factura <small>{$fsc->factura->codigo}</small></h1>
+            </div>
+         </div>
+         <div class="col-md-2">
+            <div>
+               <h1><small>{$fsc->factura->nombre}</small></h1>
+            </div>
+         </div>
+         <div class="col-md-2">
+            <div>
+               <h1><small>{$fsc->factura->fecha}</small></h1>
+            </div>
+         </div>
+         <div class="col-md-2">
+            <div class="text-capitalize">
+               <h1><small>{$fsc->amortizacion->estado}</small></h1>
+            </div>
+         </div>
+      </div>
+
+      <br/>
+
+      <div class="row">
+         <input name="id_factura" class="form-control hidden" value="{$fsc->amortizacion->id_factura}"/>
+         <input name="estado" class="form-control hidden" value="{$fsc->amortizacion->estado}"/>
+         <input name="id_amortizacion" class="form-control hidden" value="{$fsc->amortizacion->id_amortizacion}"/>
+         <div class="col-md-2">
+            Artículo:
+            <input name="descripcion" class="form-control" value="{$fsc->amortizacion->descripcion}"/>
+         </div>
+         <div class="col-md-1">
+            Tipo:
+            <input name="tipo" class="form-control" value="{$fsc->amortizacion->tipo}" readonly/>
+         </div>
+         <div class="col-md-2">
+            Amortizable:
+            <input name="valor" class="form-control" value="{$fsc->amortizacion->valor}" readonly/>
+         </div>
+         <div class="col-md-2">
+            Residual:
+            <input name="residual" class="form-control" value="{$fsc->amortizacion->residual}" readonly/>
+         </div>
+         <div class="col-md-1">
+            Años:
+            <input name="periodos" class="form-control" value="{$fsc->amortizacion->periodos}" readonly/>
+         </div>
+         <div class="col-md-2">
+            Fecha Inicio:
+            <input name="fecha_inicio" class="form-control" value="{$fsc->amortizacion->fecha_inicio}" readonly/>
+         </div>
+         <div class="col-md-2">
+            Fecha Fin:
+            <input name="fecha_fin" class="form-control" value="{$fsc->amortizacion->fecha_fin}" readonly/>
+         </div>
+      </div>
+
+      <br/>
+
+      <div class="table-responsive">
+         <table class="table table-hover">
+            <thead>
+               <tr>
+                  <th width="150">Año</th>
+                  <th>Artículo</th>
+                  <th width="150" class="text-right">Estado</th>
+                  <th width="150" class="text-right">Cantidad a amortizar</th>
+               </tr>
+            </thead>
+
+            {loop="$fsc->listado_lineas"}
+            <tr>
+               <td>
+                  <input name="contabilizada_{$value->ano}" class="form-control hidden" value="{$value->contabilizada}" readonly/>
+                  <input name="id_amortizacion_{$value->ano}" class="form-control hidden" value="{$value->id_amortizacion}" readonly/>
+                  <input name="id_linea_{$value->ano}" class="form-control hidden" value="{$value->id_linea}" readonly/>
+                  <input name="ano_{$value->ano}" class="form-control" value="{$value->ano}" readonly/>
+               </td>
+               <td>
+                  <input name="descripcion_{$value->ano}" class="form-control" value="{$fsc->amortizacion->descripcion}" readonly/>
+               </td>
+               <td>
+                  <input name="estado_{$value->ano}" class="form-control" readonly 
+                         {if="$value->contabilizada == 1"}
+                         value="Contabilizada"
+                         {else}
+                         value="Pendiente"
+                         {/if}/>
+               </td>
+               <td>
+                  <input name="cantidad_{$value->ano}" class="form-control text-right"value="{$value->cantidad}"
+                   {if="$value->contabilizada == 1"}
+                   readonly
+                   {/if}/>
+               </td>
+            </tr>
+            {/loop}
+
+         </table>
+      </div>
+
+      <div class="col-sm-12 text-right">
+         <button class="btn btn-sm btn-primary">
+            <span class="glyphicon glyphicon-floppy-disk"></span>&nbsp; Guardar...
+         </button>
+      </div>
+   </form>
+</div>
+
+   
+<div class="modal fade" id="modal_eliminar">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">¿Realmente desea eliminar esta amortización?</h4>
+         </div>
+         <div class="modal-body">
+            Si decide <b>eliminar</b> y hay asociado un asiento contable, este será eliminado junto a la amortización.
+            <br/><br/>
+            Si decide <b>anular</b> la amortización, no se generaran más asientos contables, y se eliminaran los asientos correspondientes al ejercicio fiscal actual,
+            puedes <b>reanudar</b> la amortización más adelante. 
+         </div>
+         <div class="modal-footer">
+            <a class="btn btn-sm btn-danger pull-left" href="index.php?page=amortizaciones&delete={$fsc->amortizacion->id_amortizacion}">
+               <span class="glyphicon glyphicon-trash"></span>
+               <span class="hidden-sm hidden-xs">&nbsp;Eliminar</span>
+            </a>
+            <a class="btn btn-sm btn-warning" href="index.php?page=amortizaciones&cancel={$fsc->amortizacion->id_amortizacion}">
+               <span class="glyphicon glyphicon-remove"></span>
+               <span class="hidden-sm hidden-xs">&nbsp;Anular</span>
+            </a>
+         </div>
+      </div>
+   </div>
+</div>
+
+<!--Queda pendiente que al darle al botón vender te permita eligir un cliente, y generar un albaran o factura-->
+<div class="modal fade" id="modal_vender">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">Recomendaciones de venta</h4>
+         </div>
+         <div class="modal-body">
+            Al <b>vender</b> una amortización se dejarán de generar asientos contables.
+            <br/><br/>
+            Lo recomendable a la hora de <b>vender</b> un producto que <b>estamos amortizando</b> es generar una factura de venta
+            con el mismo artículo que estamos amortizando.
+            <br/><br/>
+            Teniendo en cuenta que el valor inicial de la amortización era de <b>{$fsc->show_precio($fsc->amortizacion->valor)}</b> 
+            su valor residual de <b>{$fsc->show_precio($fsc->amortizacion->residual)}</b> 
+            y que hemos amortizado <b>{$fsc->show_precio($fsc->amortizado)}</b> durante <b>{$fsc->periodos}</b> años.
+            <br/><br/>
+            El valor actual del inmovilizado es de <b>{$fsc->show_precio($fsc->precio_venta)}</b>.
+            <br/><br/>
+            <b>Asiento de venta</b>
+            <br/>
+            Tanto al vender como al completar una amortización, se debe crear un asiento en el <b>HABER</b> que coincida con 
+            el epígrafe de compra del articulo amortizado, y con el mismo valor que su contrapartida en el <b>DEBE</b>.
+            <br/><br/>
+            Si la venta supera los <b>{$fsc->show_precio($fsc->precio_venta)}</b>, la diferencia entre la venta y 
+            el valor actual del inmovilizado se deberá anotar en el epígrafe 770 o 771, según corresponda:
+            <br/>
+            <b>770. Beneficios procedentes de inmovilizado inmaterial</b>
+            <br/>
+            <b>771. Beneficios procedentes de inmovilizado material</b>
+            <br/><br/>
+            Si por el contrario la venta no supera los <b>{$fsc->show_precio($fsc->precio_venta)}</b>, la diferencia entre la venta y 
+            el valor actual del inmovilizado se deberá anotar en la cuenta 670 o 671, según corresponda:
+            <br/>
+            <b>670. Pérdidas procedentes de inmovilizado inmaterial</b>
+            <br/>
+            <b>671. Pérdidas procedentes de inmovilizado material</b>
+            <br/><br/>
+            <b>Asiento de la amortización</b>
+            <br/>
+            Si hay un asiento creado en la contabilidad perteneciente a esta amortización, deben cambiarse los valores del 
+            <b>HABER  epígrafe 280</b>, y del <b>DEBE epigrafe 680</b>, por la siguiente cantidad: 
+            <b>{$fsc->show_precio($fsc->falta_amortizar)}</b>, sino se deben crear.
+            <br/>
+            <div class="table-responsive">
+               <table class="table table-hover">
+                  <thead>
+                     <tr>
+                        <td><b>Subcuenta + descripción</b></td>
+                        <td width="100" class="text-right"><b>Debe</b></td>
+                        <td width="100" class="text-right"><b>Haber</b></td>
+                     </tr>
+                  </thead>
+                  <tr>
+                     <td>6810000000 Amortización del inmovilizado material</td>
+                     <td  class="text-right">{$fsc->show_precio($fsc->falta_amortizar)}</td>
+                     <td  class="text-right">0.00 €</td>
+                  </tr>
+                  <tr>
+                     <td>2813000000 Amortización acumulada de maquinaria</td>
+                     <td  class="text-right">0.00 €</td>
+                     <td  class="text-right">{$fsc->show_precio($fsc->falta_amortizar)}</td>                 
+                  </tr>
+               </table>
+            </div>
+         </div>
+         <div class="modal-footer">
+            <a class="btn btn-sm btn-warning" href="index.php?page=amortizaciones&sale={$fsc->amortizacion->id_amortizacion}">
+               <span class="glyphicon glyphicon-shopping-cart"></span>
+               <span class="hidden-sm hidden-xs">&nbsp;Vender</span>
+            </a>
+         </div>
+      </div>
+   </div>
+</div>
+
+<div class="modal fade" id="modal_contabilizar">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">Crear asiento de la Amortización</h4>
+         </div>
+         <div class="modal-body">
+            Los asientos correspondientes a una amortización, se apuntan cada año con fecha 31 de Diciembre.
+            <br/><br/>
+            <b>Ejemplo</b>
+            <br/>
+            Si tenemos una amortización de una maquinaría valorada en 10 000.00 €, y que se va amortizar durante 10 años, 
+            el asiento contable anual con fecha 31 de diciembre, debería quedar así:
+            <br/>
+            <div class="table-responsive">
+               <table class="table table-hover">
+                  <thead>
+                     <tr>
+                        <td><b>Subcuenta + descripción</b></td>
+                        <td width="100" class="text-right"><b>Debe</b></td>
+                        <td width="100" class="text-right"><b>Haber</b></td>
+                     </tr>
+                  </thead>
+                  <tr>
+                     <td>6810000000 Amortización del inmovilizado material</td>
+                     <td  class="text-right">1 000.00 €</td>
+                     <td  class="text-right">0.00 €</td>
+                  </tr>
+                  <tr>
+                     <td>2813000000 Amortización acumulada de maquinaria</td>
+                     <td  class="text-right">0.00 €</td>
+                     <td  class="text-right">1 000.00 €</td>                 
+                  </tr>
+               </table>
+            </div>
+            Si la amortización se ha completado, este es el ultimo año que se realizan apuntes contables de amortización, 
+            debemos tener en cuenta si el inmovilizado continua su vida útil o si está a finalizado.
+            <br/><br/>
+            Si la vida útil ha <b>finalizado</b>, deberemos crear el siguiente asiento contable con la fecha del fin de la amortización, que actua como contrapartida 
+            al asiento que se creo al comprar el inmovilizado:
+            <br/>
+            <div class="table-responsive">
+               <table class="table table-hover">
+                  <thead>
+                     <tr>
+                        <td><b>Subcuenta + descripción</b></td>
+                        <td width="100" class="text-right"><b>Debe</b></td>
+                        <td width="100" class="text-right"><b>Haber</b></td>
+                     </tr>
+                  </thead>
+                  <tr>
+                     <td>2130000000 Maquinaria</td>
+                     <td  class="text-right">0.00 €</td>
+                     <td  class="text-right">10 000.00 €</td>
+                  </tr>
+               </table>
+            </div>
+            Si por el contrario, el inmovilizado <b>continua</b> su vida util, no crearemos el asiento de contrapartida, hasta que se le de de baja al inmovilizado.
+            <br/><br/>
+            Teniendo en cuenta esta regla, si un inmovilizado se rompe o es dado de baja por cualquier razón, 
+            deberemos crear el asiento de contrapartida con la fecha del día que se dio de baja, y continuar con la amortización.
+         </div>
+         <div class="modal-footer">
+            <a class="btn btn-sm btn-success" href="index.php?page=amortizaciones&count={$fsc->amortizacion->id_amortizacion}&year={$fsc->today()}">
+               <span class="glyphicon glyphicon-save"></span>
+               <span class="hidden-sm hidden-xs">&nbsp;Contabilizar</span>
+            </a>
+         </div>
+      </div>
+   </div>
+</div>
+
+{/if}
+
+{include="footer"}

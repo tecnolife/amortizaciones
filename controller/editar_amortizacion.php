@@ -47,7 +47,6 @@ class editar_amortizacion extends fs_controller
       {
          $amortizacion = new amortizacion();
          $this->amortizacion = $amortizacion->get_by_amortizacion($_REQUEST['id']);
-         
          $factura = new factura_proveedor();
          $this->factura = $factura->get($this->amortizacion->id_factura);
          

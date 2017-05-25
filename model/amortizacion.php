@@ -21,6 +21,9 @@
 class amortizacion extends fs_model 
 {
    
+   public $cod_subcuenta_cierre;
+   public $cod_subcuenta_debe;
+   public $cod_subcuenta_haber;
    public $descripcion;
    public $estado;
    public $fecha_fin;
@@ -48,6 +51,9 @@ class amortizacion extends fs_model
          $this->tipo = NULL;
          $this->valor = NULL;
          */
+         $this->cod_subcuenta_cierre = $this->intval($t['codsubcuentacierre']);
+         $this->cod_subcuenta_debe = $this->intval($t['codsubcuentadebe']);
+         $this->cod_subcuenta_haber = $this->intval($t['codsubcuentahaber']);
          $this->descripcion = $t['descripcion'];
          $this->estado = $t['estado'];
          $this->fecha_fin = Date('d-m-Y', strtotime($t['fechafin']));
@@ -63,6 +69,9 @@ class amortizacion extends fs_model
       }
       else
       {
+         $this->cod_subcuenta_cierre = NULL;
+         $this->cod_subcuenta_debe = NULL;
+         $this->cod_subcuenta_haber = NULL;
          $this->descripcion = NULL;
          $this->estado = NULL;
          $this->fecha_fin = Date('d-m-Y');
@@ -97,6 +106,9 @@ class amortizacion extends fs_model
       if($this->exists())
       {
          $sql = "UPDATE amortizaciones SET 
+                 codsubcuentacierre = ". $this->var2str($this->cod_subcuenta_cierre).",
+                 codsubcuentadebe = ". $this->var2str($this->cod_subcuenta_debe).",
+                 codsubcuentahaber = ". $this->var2str($this->cod_subcuenta_haber).",
                  descripcion = ". $this->var2str($this->descripcion).", 
                  estado = ". $this->var2str($this->estado).",
                  fechafin = ". $this->var2str($this->fecha_fin).",
@@ -112,7 +124,10 @@ class amortizacion extends fs_model
       }
       else
       {
-         $sql = "INSERT INTO amortizaciones (descripcion,fechafin,fechainicio,idfactura,periodos,residual,tipo,valor) VALUES ("
+         $sql = "INSERT INTO amortizaciones (codsubcuentacierre,codsubcuentadebe,codsubcuentahaber,descripcion,fechafin,fechainicio,idfactura,periodos,residual,tipo,valor) VALUES ("
+                . $this->var2str($this->cod_subcuenta_cierre).","
+                . $this->var2str($this->cod_subcuenta_debe).","
+                . $this->var2str($this->cod_subcuenta_haber).","
                 . $this->var2str($this->descripcion).","
                 . $this->var2str($this->fecha_fin).","
                 . $this->var2str($this->fecha_inicio).","

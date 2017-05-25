@@ -81,6 +81,9 @@ class amortizaciones extends fs_controller
    
    private function anadir_amortizacion()
    {
+      $this->amortizacion->cod_subcuenta_cierre = $_POST['cod_subcuenta_cierre'];
+      $this->amortizacion->cod_subcuenta_debe = $_POST['cod_subcuenta_debe'];
+      $this->amortizacion->cod_subcuenta_haber = $_POST['cod_subcuenta_haber'];
       $this->amortizacion->descripcion = $_POST['descripcion'];
       $this->amortizacion->fecha_fin = $_POST['fecha_fin'];
       $this->amortizacion->fecha_inicio = $_POST['fecha_inicio'];

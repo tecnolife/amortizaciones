@@ -7,6 +7,21 @@
 -->
 <tabla>
 <columna>
+   <nombre>codsubcuentacierre</nombre>
+   <tipo>character varying(15)</tipo>
+   <nulo>YES</nulo>
+</columna>
+<columna>
+   <nombre>codsubcuentadebe</nombre>
+   <tipo>character varying(15)</tipo>
+   <nulo>YES</nulo>
+</columna>
+<columna>
+   <nombre>codsubcuentahaber</nombre>
+   <tipo>character varying(15)</tipo>
+   <nulo>YES</nulo>
+</columna>
+<columna>
    <nombre>descripcion</nombre>
    <tipo>text</tipo>
    <nulo>YES</nulo>

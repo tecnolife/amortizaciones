@@ -32,14 +32,18 @@
             <div class="btn-group">
                <a id="b_eliminar" class="btn btn-sm btn-danger">
                   <span class="glyphicon glyphicon-trash"></span>
-                  <span class="hidden-sm hidden-xs">&nbsp;Eliminar</span>
+                  <span class="hidden-sm hidden-xs">
+                     &nbsp;Eliminar
+                  </span>
                </a>
                <!--Al realizar la venta debemos tener en cuenta si existe el apunte contable correspondiente a esa amortización en el año actual,
                si es así, el apunte contable debe ser modificado, para que muestre solo lo que se ha amortizado este año
                y si no está creado, pues se crea con lo que hemos amortizado a lo largo de este año-->
                <a id="b_vender" class="btn btn-sm btn-warning">
                   <span class="glyphicon glyphicon-shopping-cart"></span>
-                  <span class="hidden-sm hidden-xs">&nbsp;Vender</span>
+                  <span class="hidden-sm hidden-xs">
+                     &nbsp;Vender
+                  </span>
                </a>
                <!--Estamos cogiendo el año que corresponde a la fecha de hoy, lo que significa, que si intentamos hacer la contabilización en enero,
                por ejemplo, nos hara la de ese año y no la del anterior
@@ -48,11 +52,15 @@
                <!--Quiza sea recomendable crear dos botones, uno para marcar como amortizada y otro para crear las cuentas contables-->
                <a id="b_contabilizar" class="btn btn-sm btn-success" href="index.php?page=amortizaciones&count={$fsc->amortizacion->id_amortizacion}&year={$fsc->today()}">
                   <span class="glyphicon glyphicon-save"></span>
-                  <span class="hidden-sm hidden-xs">&nbsp;Contabilizar</span>
+                  <span class="hidden-sm hidden-xs">
+                     &nbsp;Contabilizar
+                  </span>
                </a>
                <button class="btn btn-sm btn-primary" type="submit">
                   <span class="glyphicon glyphicon-floppy-disk"></span>
-                  <span class="hidden-xs">&nbsp;Guardar</span>
+                  <span class="hidden-xs">
+                     &nbsp;Guardar
+                  </span>
                </button>
             </div>
          </div>
@@ -62,22 +70,31 @@
       <div class="row page-header">
          <div class="col-md-6">
             <div>
-               <h1>Amortización sobre la factura <small>{$fsc->factura->codigo}</small></h1>
+               <h1>
+                  Amortización sobre la factura 
+                  <small>{$fsc->factura->codigo}</small>
+               </h1>
             </div>
          </div>
          <div class="col-md-2">
             <div>
-               <h1><small>{$fsc->factura->nombre}</small></h1>
+               <h1>
+                  <small>{$fsc->factura->nombre}</small>
+               </h1>
             </div>
          </div>
          <div class="col-md-2">
             <div>
-               <h1><small>{$fsc->factura->fecha}</small></h1>
+               <h1>
+                  <small>{$fsc->factura->fecha}</small>
+               </h1>
             </div>
          </div>
          <div class="col-md-2">
             <div class="text-capitalize">
-               <h1><small>{$fsc->amortizacion->estado}</small></h1>
+               <h1>
+                  <small>{$fsc->amortizacion->estado}</small>
+               </h1>
             </div>
          </div>
       </div>
@@ -147,35 +164,35 @@
                   <th width="150" class="text-right">Cantidad a amortizar</th>
                </tr>
             </thead>
-
-            {loop="$fsc->listado_lineas"}
-            <tr>
-               <td>
-                  <input name="contabilizada_{$value->ano}" class="form-control hidden" value="{$value->contabilizada}" readonly/>
-                  <input name="id_amortizacion_{$value->ano}" class="form-control hidden" value="{$value->id_amortizacion}" readonly/>
-                  <input name="id_linea_{$value->ano}" class="form-control hidden" value="{$value->id_linea}" readonly/>
-                  <input name="ano_{$value->ano}" class="form-control" value="{$value->ano}" readonly/>
-               </td>
-               <td>
-                  <input name="descripcion_{$value->ano}" class="form-control" value="{$fsc->amortizacion->descripcion}" readonly/>
-               </td>
-               <td>
-                  <input name="estado_{$value->ano}" class="form-control" readonly 
-                         {if="$value->contabilizada == 1"}
-                         value="Contabilizada"
-                         {else}
-                         value="Pendiente"
-                         {/if}/>
-               </td>
-               <td>
-                  <input name="cantidad_{$value->ano}" class="form-control text-right"value="{$value->cantidad}"
-                   {if="$value->contabilizada == 1"}
-                   readonly
-                   {/if}/>
-               </td>
-            </tr>
-            {/loop}
-
+            <tbody>
+               {loop="$fsc->listado_lineas"}
+               <tr>
+                  <td>
+                     <input name="contabilizada_{$value->ano}" class="form-control hidden" value="{$value->contabilizada}" readonly/>
+                     <input name="id_amortizacion_{$value->ano}" class="form-control hidden" value="{$value->id_amortizacion}" readonly/>
+                     <input name="id_linea_{$value->ano}" class="form-control hidden" value="{$value->id_linea}" readonly/>
+                     <input name="ano_{$value->ano}" class="form-control" value="{$value->ano}" readonly/>
+                  </td>
+                  <td>
+                     <input name="descripcion_{$value->ano}" class="form-control" value="{$fsc->amortizacion->descripcion}" readonly/>
+                  </td>
+                  <td>
+                     <input name="estado_{$value->ano}" class="form-control" readonly
+                            {if="$value->contabilizada == 1"}
+                            value="Contabilizada"
+                            {else}
+                            value="Pendiente"
+                            {/if}/>
+                  </td>
+                  <td>
+                     <input name="cantidad_{$value->ano}" class="form-control text-right"value="{$value->cantidad}"
+                      {if="$value->contabilizada == 1"}
+                      readonly
+                      {/if}/>
+                  </td>
+               </tr>
+               {/loop}
+            </tbody>
          </table>
       </div>
 
@@ -269,16 +286,18 @@
                         <td width="100" class="text-right"><b>Haber</b></td>
                      </tr>
                   </thead>
-                  <tr>
-                     <td>6810000000 Amortización del inmovilizado material</td>
-                     <td  class="text-right">{$fsc->show_precio($fsc->falta_amortizar)}</td>
-                     <td  class="text-right">0.00 €</td>
-                  </tr>
-                  <tr>
-                     <td>2813000000 Amortización acumulada de maquinaria</td>
-                     <td  class="text-right">0.00 €</td>
-                     <td  class="text-right">{$fsc->show_precio($fsc->falta_amortizar)}</td>                 
-                  </tr>
+                  <tbody>
+                     <tr>
+                        <td>6810000000 Amortización del inmovilizado material</td>
+                        <td class="text-right">{$fsc->show_precio($fsc->falta_amortizar)}</td>
+                        <td class="text-right">0.00 €</td>
+                     </tr>
+                     <tr>
+                        <td>2813000000 Amortización acumulada de maquinaria</td>
+                        <td class="text-right">0.00 €</td>
+                        <td class="text-right">{$fsc->show_precio($fsc->falta_amortizar)}</td>
+                     </tr>
+                  </tbody>
                </table>
             </div>
          </div>
@@ -292,6 +311,7 @@
    </div>
 </div>
 
+<!--Cuadro de asientos contables-->
 <div class="modal fade" id="modal_contabilizar">
    <div class="modal-dialog">
       <div class="modal-content">
@@ -316,16 +336,18 @@
                         <td width="100" class="text-right"><b>Haber</b></td>
                      </tr>
                   </thead>
-                  <tr>
-                     <td>6810000000 Amortización del inmovilizado material</td>
-                     <td  class="text-right">1 000.00 €</td>
-                     <td  class="text-right">0.00 €</td>
-                  </tr>
-                  <tr>
-                     <td>2813000000 Amortización acumulada de maquinaria</td>
-                     <td  class="text-right">0.00 €</td>
-                     <td  class="text-right">1 000.00 €</td>                 
-                  </tr>
+                  <tbody>
+                     <tr>
+                        <td>6810000000 Amortización del inmovilizado material</td>
+                        <td class="text-right">1 000.00 €</td>
+                        <td class="text-right">0.00 €</td>
+                     </tr>
+                     <tr>
+                        <td>2813000000 Amortización acumulada de maquinaria</td>
+                        <td class="text-right">0.00 €</td>
+                        <td class="text-right">1 000.00 €</td>
+                     </tr>
+                  </tbody>
                </table>
             </div>
             Si la amortización se ha completado, este es el ultimo año que se realizan apuntes contables de amortización, 
@@ -343,11 +365,13 @@
                         <td width="100" class="text-right"><b>Haber</b></td>
                      </tr>
                   </thead>
-                  <tr>
-                     <td>2130000000 Maquinaria</td>
-                     <td  class="text-right">0.00 €</td>
-                     <td  class="text-right">10 000.00 €</td>
-                  </tr>
+                  <tbody>
+                     <tr>
+                        <td>2130000000 Maquinaria</td>
+                        <td class="text-right">0.00 €</td>
+                        <td class="text-right">10 000.00 €</td>
+                     </tr>
+                  </tbody>
                </table>
             </div>
             Si por el contrario, el inmovilizado <b>continua</b> su vida util, no crearemos el asiento de contrapartida, hasta que se le de de baja al inmovilizado.
@@ -356,10 +380,16 @@
             deberemos crear el asiento de contrapartida con la fecha del día que se dio de baja, y continuar con la amortización.
          </div>
          <div class="modal-footer">
-            <a class="btn btn-sm btn-success" href="index.php?page=amortizaciones&count={$fsc->amortizacion->id_amortizacion}&year={$fsc->today()}">
-               <span class="glyphicon glyphicon-save"></span>
-               <span class="hidden-sm hidden-xs">&nbsp;Contabilizar</span>
-            </a>
+            <form action="index.php?page=amortizaciones&count={$fsc->amortizacion->id_amortizacion}&year={$fsc->today()}" method="post" class="form">
+               <input name="id_factura" class="form-control hidden" value="{$fsc->amortizacion->id_factura}"/>
+               <input name="descripcion" class="form-control hidden" value="{$fsc->amortizacion->descripcion}"/>
+               <button class="btn btn-sm btn-success" type="submit" href="index.php?page=amortizaciones&count={$fsc->amortizacion->id_amortizacion}&year={$fsc->today()}">
+                  <span class="glyphicon glyphicon-save"></span>
+                  <span class="hidden-sm hidden-xs">
+                     &nbsp;Contabilizar
+                  </span>
+               </button>
+            </form>
          </div>
       </div>
    </div>

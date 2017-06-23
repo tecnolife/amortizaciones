@@ -19,8 +19,16 @@
 
       <!-- Cabezeras de las pestañas -->
       <ul class="nav nav-tabs" role="tablist">
-         <li role="presentation" class="active"><a href="#todas" aria-controls="todas" role="tab" data-toggle="tab">Todas</a></li>
-         <li role="presentation"><a href="#pendientes" aria-controls="pendientes" role="tab" data-toggle="tab">Pendientes</a></li>
+         <li role="presentation" class="active">
+            <a href="#todas" aria-controls="todas" role="tab" data-toggle="tab">
+               Todas
+            </a>
+         </li>
+         <li role="presentation">
+            <a href="#pendientes" aria-controls="pendientes" role="tab" data-toggle="tab">
+               Pendientes
+            </a>
+         </li>
       </ul>
 
       <!-- Conetenido de las pestañas -->
@@ -40,46 +48,37 @@
                         <th width="150" class="text-right">Estado</th>
                      </tr>
                   </thead>
-
-                  {loop="$fsc->listado"}
-                  <tr 
-                     {if="$value->estado == 'completada'"}
-                     class="clickableRow success"
-                     {elseif="$value->estado == 'vendida'"}
-                     class="clickableRow info"
-                     {elseif="$value->estado == 'anulada'"}
-                     class="clickableRow danger"
-                     {else}
-                     class="clickableRow"
-                     {/if}
-                     href="index.php?page=editar_amortizacion&id={$value->id_amortizacion}">
-                     <td>
-                        <div>{$value->descripcion}</div>
-                     </td>
-                     <td>
-                        <div class="text-right">{$value->tipo}</div>
-                     </td>
-                     <td>
-                        <div class="text-right">{$fsc->show_precio($value->valor)}</div>
-                     </td>
-                     <td>
-                        <div class="text-right">{$fsc->show_precio($value->residual)}</div>
-                     </td>
-                     <td>
-                        <div class="text-right">{$value->periodos}</div>
-                     </td>
-                     <td>
-                        <div class="text-right">{$value->fecha_inicio}</div>
-                     </td>
-                     <td>
-                        <div class="text-right">{$value->fecha_fin}</div>
-                     </td>
-                     <td>
-                        <div class="text-right">{$value->estado}</div>
-                     </td>
-                  </tr>
-                  {/loop}
-
+                  <tbody>
+                     {loop="$fsc->listado"}
+                     <tr class='clickableRow{if="$value->estado == 'completada'"} success{elseif="$value->estado == 'vendida'"} info{elseif="$value->estado == 'anulada'"} danger{/if}'
+                        href="index.php?page=editar_amortizacion&id={$value->id_amortizacion}">
+                        <td>
+                           <div>{$value->descripcion}</div>
+                        </td>
+                        <td>
+                           <div class="text-right">{$value->tipo}</div>
+                        </td>
+                        <td>
+                           <div class="text-right">{$fsc->show_precio($value->valor)}</div>
+                        </td>
+                        <td>
+                           <div class="text-right">{$fsc->show_precio($value->residual)}</div>
+                        </td>
+                        <td>
+                           <div class="text-right">{$value->periodos}</div>
+                        </td>
+                        <td>
+                           <div class="text-right">{$value->fecha_inicio}</div>
+                        </td>
+                        <td>
+                           <div class="text-right">{$value->fecha_fin}</div>
+                        </td>
+                        <td>
+                           <div class="text-right">{$value->estado}</div>
+                        </td>
+                     </tr>
+                     {/loop}
+                  </tbody>
                </table>
             </div>
             
@@ -107,21 +106,21 @@
                         <th width="150" class="text-right">Cantidad a amortizar</th>
                      </tr>
                   </thead>
-
-                  {loop="$fsc->listado_pendientes"}
-                  <tr class="clickableRow" href="index.php?page=editar_amortizacion&id={$value[id_amortizacion]}">
-                     <td>
-                        <div>{$value[ano]}</div>
-                     </td>
-                     <td>
-                        <div>{$value[descripcion]}</div>
-                     </td>
-                     <td>
-                        <div class="text-right">{$fsc->show_precio($value[cantidad])}</div>
-                     </td>
-                  </tr>
-                  {/loop}
-
+                  <tbody>
+                     {loop="$fsc->listado_pendientes"}
+                     <tr class="clickableRow" href="index.php?page=editar_amortizacion&id={$value[id_amortizacion]}">
+                        <td>
+                           <div>{$value[ano]}</div>
+                        </td>
+                        <td>
+                           <div>{$value[descripcion]}</div>
+                        </td>
+                        <td>
+                           <div class="text-right">{$fsc->show_precio($value[cantidad])}</div>
+                        </td>
+                     </tr>
+                     {/loop}
+                  </tbody>
                </table>
                
             </div>

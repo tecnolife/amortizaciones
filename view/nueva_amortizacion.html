@@ -1,21 +1,26 @@
 {include="header"}
 
-{if="$fsc->amortizacion"}
+{if="$fsc->id_factura"}
 <div class="container-fluid">
 
    <!--TABLA CON LAS LÍNEAS DE LA AMORTIZACIÓN-->
-   {if="isset($_POST['periodos'])"}
-   {if="$_POST['periodos'] != 0"}
+   {if="filter_input(INPUT_POST,'periodos') !== null"}
+   {if="filter_input(INPUT_POST,'periodos', FILTER_VALIDATE_INT) != 0"}
       
    <div class="row">
       <div class="col-sm-6">
          <div class="page-header">
-            <h1>Líneas de amortización sobre<small> {$_POST['descripcion']}</small></h1>
+            <h1>
+               Líneas de amortización sobre
+               <small>{$fsc->datos['descripcion']}</small>
+            </h1>
          </div>
       </div>
       <div class="col-sm-6">
          <div class="page-header">
-            <h1><small>Desde el {$_POST['fecha_inicio']} hasta el {$fsc->fecha_fin}</small></h1>
+            <h1>
+               <small>Desde el {$fsc->datos['fecha_inicio']} hasta el {$fsc->fecha_fin}</small>
+            </h1>
          </div>
       </div>
    </div>
@@ -35,25 +40,26 @@
                   <th width="150" class="text-right">Fecha Final</th>
                </tr>
             </thead>
-            <input name="id_factura" class="form-control hidden" value="{$fsc->amortizacion->idfactura}" readonly/>
+            <input name="id_factura" class="form-control hidden" value="{$fsc->id_factura}" readonly/>
             <tr>
+               
                <td>
-                  <input name="descripcion" class="form-control" value="{$_POST['descripcion']}" readonly/>
+                  <input name="descripcion" class="form-control" value="{$fsc->datos['descripcion']}" readonly/>
                </td>
                <td class="text-right">
-                  <input name="tipo" class="form-control text-right" value="{$_POST['tipo']}" readonly/>
+                  <input name="tipo" class="form-control text-right" value="{$fsc->datos['tipo']}" readonly/>
                </td>
                <td class="text-right">
-                  <input name="valor" class="form-control text-right" value="{$_POST['valor']}" readonly/>
+                  <input name="valor" class="form-control text-right" value="{$fsc->datos['valor']}" readonly/>
                </td>
                <td class="text-right">
-                  <input name="residual" class="form-control text-right" value="{$_POST['residual']}" readonly/>
+                  <input name="residual" class="form-control text-right" value="{$fsc->datos['residual']}" readonly/>
                </td>
                <td class="info">
-                  <input name="periodos" class="form-control text-right" value="{$_POST['periodos']}" readonly/>
+                  <input name="periodos" class="form-control text-right" value="{$fsc->datos['periodos']}" readonly/>
                </td>
                <td>
-                  <input name="fecha_inicio" class="form-control text-right" value="{$_POST['fecha_inicio']}" readonly/>
+                  <input name="fecha_inicio" class="form-control text-right" value="{$fsc->datos['fecha_inicio']}" readonly/>
                </td>
                <td>
                   <input name="fecha_fin" class="form-control text-right" value="{$fsc->fecha_fin}" readonly/>
@@ -112,20 +118,21 @@
                   <th width="150" class="text-right">Cantidad a amortizar</th>
                </tr>
             </thead>
-
-            {loop="$fsc->lineas"} <!--TABLA LINEASAMORTIZACIONES-->
-            <tr>
-               <td>
-                  <input name="ano_{$key}" class="form-control" value="{$key}" readonly/>
-               </td>
-               <td>
-                  <input name="descripcion_{$key}" class="form-control" value="{$_POST['descripcion']}" readonly/>
-               </td>
-               <td class="text-right">
-                  <input name="cantidad_{$key}" class="form-control"value="{$value}"/>
-               </td>
-            </tr>
-            {/loop}            
+            <tbody>
+               {loop="$fsc->lineas"} <!--TABLA LINEASAMORTIZACIONES-->
+               <tr>
+                  <td>
+                     <input name="ano_{$key}" class="form-control" value="{$key}" readonly/>
+                  </td>
+                  <td>
+                     <input name="descripcion_{$key}" class="form-control" value="{$fsc->datos['descripcion']}" readonly/>
+                  </td>
+                  <td class="text-right">
+                     <input name="cantidad_{$key}" class="form-control"value="{$value}"/>
+                  </td>
+               </tr>
+               {/loop}
+            </tbody>
          </table>
       </div>
 
@@ -159,174 +166,175 @@
                   <th width="500"></th>
                </tr>
             </thead>
+            <tbody>
+               <tr>
+                  <td>
+                     <div>2000000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Investigación</div>
+                  </td>
+                  <td>
+                     <div>6800000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado intangible</div>
+                  </td>
+                  <td>
+                     <div>2800000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de investigación</div>
+                  </td>
+               </tr>
 
-            <tr>
-               <td>
-                  <div>2000000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Investigación</div>
-               </td>
-               <td>
-                  <div>6800000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización del inmovilizado intangible</div>
-               </td>
-               <td>
-                  <div>2800000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización acumulada de investigación</div>
-               </td>
-            </tr>
+               <tr>
+                  <td>
+                     <div>2010000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Desarrollo</div>
+                  </td>
+                  <td>
+                     <div>6800000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado intangible</div>
+                  </td>
+                  <td>
+                     <div>2801000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de desarrollo</div>
+                  </td>
+               </tr>
 
-            <tr>
-               <td>
-                  <div>2010000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Desarrollo</div>
-               </td>
-               <td>
-                  <div>6800000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización del inmovilizado intangible</div>
-               </td>
-               <td>
-                  <div>2801000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización acumulada de desarrollo</div>
-               </td>
-            </tr>
+               <tr>
+                  <td>
+                     <div>2020000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Concesiones administrativas</div>
+                  </td>
+                  <td>
+                     <div>6800000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado intangible</div>
+                  </td>
+                  <td>
+                     <div>2802000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de concesiones administrativas</div>
+                  </td>
+               </tr>
 
-            <tr>
-               <td>
-                  <div>2020000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Concesiones administrativas</div>
-               </td>
-               <td>
-                  <div>6800000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización del inmovilizado intangible</div>
-               </td>
-               <td>
-                  <div>2802000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización acumulada de concesiones administrativas</div>
-               </td>
-            </tr>
+               <tr>
+                  <td>
+                     <div>2030000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Propiedad industrial</div>
+                  </td>
+                  <td>
+                     <div>6800000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado intangible</div>
+                  </td>
+                  <td>
+                     <div>2803000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de propiedad industrial</div>
+                  </td>
+               </tr>
 
-            <tr>
-               <td>
-                  <div>2030000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Propiedad industrial</div>
-               </td>
-               <td>
-                  <div>6800000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización del inmovilizado intangible</div>
-               </td>
-               <td>
-                  <div>2803000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización acumulada de propiedad industrial</div>
-               </td>
-            </tr>
+               <tr>
+                  <td>
+                     <div>2040000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Fondo de comercio</div>
+                  </td>
+                  <td>
+                     <div>6800000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado intangible</div>
+                  </td>
+                  <td>
+                     <div></div>
+                  </td>
+                  <td>
+                     <div class="text-left"></div>
+                  </td>
+               </tr>
 
-            <tr>
-               <td>
-                  <div>2040000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Fondo de comercio</div>
-               </td>
-               <td>
-                  <div>6800000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización del inmovilizado intangible</div>
-               </td>
-               <td>
-                  <div></div>
-               </td>
-               <td>
-                  <div class="text-left"></div>
-               </td>
-            </tr>
+               <tr>
+                  <td>
+                     <div>2050000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Derechos de traspaso</div>
+                  </td>
+                  <td>
+                     <div>6800000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado intangible</div>
+                  </td>
+                  <td>
+                     <div>2805000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de derechos de traspaso</div>
+                  </td>
+               </tr>
 
-            <tr>
-               <td>
-                  <div>2050000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Derechos de traspaso</div>
-               </td>
-               <td>
-                  <div>6800000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización del inmovilizado intangible</div>
-               </td>
-               <td>
-                  <div>2805000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización acumulada de derechos de traspaso</div>
-               </td>
-            </tr>
+               <tr>
+                  <td>
+                     <div>2060000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Aplicaciones informáticas</div>
+                  </td>
+                  <td>
+                     <div>6800000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado intangible</div>
+                  </td>
+                  <td>
+                     <div>2806000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de aplicaciones informáticas</div>
+                  </td>
+               </tr>
 
-            <tr>
-               <td>
-                  <div>2060000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Aplicaciones informáticas</div>
-               </td>
-               <td>
-                  <div>6800000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización del inmovilizado intangible</div>
-               </td>
-               <td>
-                  <div>2806000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización acumulada de aplicaciones informáticas</div>
-               </td>
-            </tr>
-
-            <tr>
-               <td>
-                  <div>2090000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Anticipos para inmovilizaciones intangibles</div>
-               </td>
-               <td>
-                  <div>6800000000</div>
-               </td>
-               <td>
-                  <div class="text-left">Amortización del inmovilizado intangible</div>
-               </td>
-               <td>
-                  <div></div>
-               </td>
-               <td>
-                  <div class="text-left"></div>
-               </td>
-            </tr>
+               <tr>
+                  <td>
+                     <div>2090000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Anticipos para inmovilizaciones intangibles</div>
+                  </td>
+                  <td>
+                     <div>6800000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado intangible</div>
+                  </td>
+                  <td>
+                     <div></div>
+                  </td>
+                  <td>
+                     <div class="text-left"></div>
+                  </td>
+               </tr>
+            </tbody>
          </table>
       </div>
    </div>
@@ -345,217 +353,217 @@
                   <th width="500"></th>
                </tr>
             </thead>
+            <tbody>
+               <tr>
+                  <td>
+                     <div>2100000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Terrenos y bienes naturales</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div></div>
+                  </td>
+                  <td>
+                     <div class="text-left"></div>
+                  </td>
+               </tr>
 
-            <tr>
-            <td>
-               <div>2100000000</div>
-            </td>
-            <td>
-               <div class="text-left">Terrenos y bienes naturales</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div></div>
-            </td>
-            <td>
-               <div class="text-left"></div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2110000000</div>
-            </td>
-            <td>
-               <div class="text-left">Construcciones</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div>2811000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de construcciones</div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2120000000</div>
-            </td>
-            <td>
-               <div class="text-left">Instalaciones Técnicas</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div>2812000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de instalaciones Técnicas</div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2130000000</div>
-            </td>
-            <td>
-               <div class="text-left">Maquinaria</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div>2813000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de maquinaria</div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2140000000</div>
-            </td>
-            <td>
-               <div class="text-left">Utillaje</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div>2814000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de utillaje</div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2150000000</div>
-            </td>
-            <td>
-               <div class="text-left">Otras instalaciones</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div>2815000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de otras instalaciones</div>
-            </td>
-         </tr>
-	
-         <tr>
-            <td>
-               <div>2160000000</div>
-            </td>
-            <td>
-               <div class="text-left">Mobiliario</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div>2816000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de mobiliario</div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2170000000</div>
-            </td>
-            <td>
-               <div class="text-left">Equipos para procesos de información</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div>2817000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de equipos para procesos de información</div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2180000000</div>
-            </td>
-            <td>
-               <div class="text-left">Elementos de transporte</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div>2818000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de equipos para elementos de transporte</div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2190000000</div>
-            </td>
-            <td>
-               <div class="text-left">Otro inmovilizado material</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div>2819000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de otro inmovilizado material</div>
-            </td>
-         </tr>
-            
+               <tr>
+                  <td>
+                     <div>2110000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Construcciones</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>2811000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de construcciones</div>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <div>2120000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Instalaciones Técnicas</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>2812000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de instalaciones Técnicas</div>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <div>2130000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Maquinaria</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>2813000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de maquinaria</div>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <div>2140000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Utillaje</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>2814000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de utillaje</div>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <div>2150000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Otras instalaciones</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>2815000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de otras instalaciones</div>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <div>2160000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Mobiliario</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>2816000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de mobiliario</div>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <div>2170000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Equipos para procesos de información</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>2817000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de equipos para procesos de información</div>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <div>2180000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Elementos de transporte</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>2818000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de equipos para elementos de transporte</div>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <div>2190000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Otro inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>2819000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de otro inmovilizado material</div>
+                  </td>
+               </tr>
+            </tbody>
          </table>
       </div>
    </div>
@@ -574,49 +582,49 @@
                   <th width="500"></th>
                </tr>
             </thead>
+            <tbody>
+               <tr>
+                  <td>
+                     <div>2200000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Inversiones en terrenos y bienes naturales</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización de las inversiones inmobiliarias</div>
+                  </td>
+                  <td>
+                     <div>2820000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de las inversiones inmobiliarias</div>
+                  </td>
+               </tr>
 
-            <tr>
-            <td>
-               <div>2200000000</div>
-            </td>
-            <td>
-               <div class="text-left">Inversiones en terrenos y bienes naturales</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización de las inversiones inmobiliarias</div>
-            </td>
-            <td>
-               <div>2820000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de las inversiones inmobiliarias</div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2210000000</div>
-            </td>
-            <td>
-               <div class="text-left">Inversiones en construcciones</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización de las inversiones inmobiliarias</div>
-            </td>
-            <td>
-               <div>2820000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de las inversiones inmobiliarias</div>
-            </td>
-         </tr>
-            
+               <tr>
+                  <td>
+                     <div>2210000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Inversiones en construcciones</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización de las inversiones inmobiliarias</div>
+                  </td>
+                  <td>
+                     <div>2820000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de las inversiones inmobiliarias</div>
+                  </td>
+               </tr>
+            </tbody>
          </table>
       </div>
    </div>
@@ -635,133 +643,133 @@
                   <th width="500"></th>
                </tr>
             </thead>
+            <tbody>
+               <tr>
+                  <td>
+                     <div>2300000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Adaptación de terrenos y bienes naturales</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización de las inversiones inmobiliarias</div>
+                  </td>
+                  <td>
+                     <div>2820000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de las inversiones inmobiliarias</div>
+                  </td>
+               </tr>
 
-            <tr>
-            <td>
-               <div>2300000000</div>
-            </td>
-            <td>
-               <div class="text-left">Adaptación de terrenos y bienes naturales</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización de las inversiones inmobiliarias</div>
-            </td>
-            <td>
-               <div>2820000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de las inversiones inmobiliarias</div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2310000000</div>
-            </td>
-            <td>
-               <div class="text-left">Construcciones en curso</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización de las inversiones inmobiliarias</div>
-            </td>
-            <td>
-               <div>2820000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de las inversiones inmobiliarias</div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2320000000</div>
-            </td>
-            <td>
-               <div class="text-left">Instalaciones técnicas en montaje</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div>2812000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de instalaciones Técnicas</div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2330000000</div>
-            </td>
-            <td>
-               <div class="text-left">Maquinaria en montaje</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div>2813000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de maquinaria</div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2370000000</div>
-            </td>
-            <td>
-               <div class="text-left">Equipos para procesos de información en montaje</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div>2817000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de equipos para procesos de información</div>
-            </td>
-         </tr>
-         
-         <tr>
-            <td>
-               <div>2390000000</div>
-            </td>
-            <td>
-               <div class="text-left">Anticipos para inmovilizaciones materiales</div>
-            </td>
-            <td>
-               <div>6810000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización del inmovilizado material</div>
-            </td>
-            <td>
-               <div>*2819000000</div>
-            </td>
-            <td>
-               <div class="text-left">Amortización acumulada de otro inmovilizado material</div>
-            </td>
-         </tr>
-            
+               <tr>
+                  <td>
+                     <div>2310000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Construcciones en curso</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización de las inversiones inmobiliarias</div>
+                  </td>
+                  <td>
+                     <div>2820000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de las inversiones inmobiliarias</div>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <div>2320000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Instalaciones técnicas en montaje</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>2812000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de instalaciones Técnicas</div>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <div>2330000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Maquinaria en montaje</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>2813000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de maquinaria</div>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <div>2370000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Equipos para procesos de información en montaje</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>2817000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de equipos para procesos de información</div>
+                  </td>
+               </tr>
+
+               <tr>
+                  <td>
+                     <div>2390000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Anticipos para inmovilizaciones materiales</div>
+                  </td>
+                  <td>
+                     <div>6810000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización del inmovilizado material</div>
+                  </td>
+                  <td>
+                     <div>*2819000000</div>
+                  </td>
+                  <td>
+                     <div class="text-left">Amortización acumulada de otro inmovilizado material</div>
+                  </td>
+               </tr>
+            </tbody>
          </table>
       </div>
    </div>
@@ -770,7 +778,7 @@
    {/if}
    {/if}
    
-   {if="empty($_POST['periodos'])"}
+   {if="empty(filter_input(INPUT_POST,'periodos'))"}
    <!--CABECERA DE LA PÄGINA-->
    <div class="row">
       <div class="col-sm-6">
@@ -844,44 +852,49 @@
                            <th width="150" class="text-right"></th>
                         </tr>
                      </thead>
-                     {loop="$fsc->amortizacion->get_lineas()"}
-                     <form action="{$fsc->url()}&id={$_REQUEST['id']}" method="post" class="form">
-                        <tr>
-                           <td>
-                              <input class="form-control" name="descripcion" value="{$value->referencia} {$value->descripcion}"/>
-                           </td>
-                           <!--Tipo permanece oculto hasta que se crean más metodos de amortización, por porcentaje anual, por ejemplo-->
-                           <td class="text-right hidden">
-                              <select name="tipo" class="form-control">
-                                 <option value="constante">Constante</option>
-                                 <option value="degresiva">Degresiva</option>
-                                 <option value="progresiva">Progresiva</option>
-                              </select>
-                           </td>
-                           <td class="text-right">
-                              <input name="valor" class="form-control text-right" value="{$value->pvpunitario}"/>
-                           </td>
-                           <td class="text-right">
-                              <input name="residual" value="0" min="0" class="form-control text-right"/>
-                           </td>
-                           <td class="info">
-                              <input type="number" name="periodos" value="0" min="0" max="200" step="any" class="form-control text-right"/>
-                           </td>
-                           <td>
-                              <input type="text" name="fecha_inicio" value="{$fsc->fecha}" class="form-control datepicker text-right"/>
-                           </td>
-                           <!--Fecha final permanece oculta hasta que al sumar un periodo la fecha final se actualice instantaneamente-->
-                           <td class="hidden">
-                              <input type="text" name="fecha_final" value="{$fsc->today()}" class="form-control datepicker text-right"/>
-                           </td>
-                           <td class="text-right">
-                              <button type="submit" class="btn btn-sm btn-success">
-                                 Generar líneas
-                              </button>
-                           </td>
-                        </tr>
-                     </form>
-                     {/loop}
+                     <tbody>
+                        {loop="$fsc->amortizacion->get_lineas()"}
+                        <!--<form action="{$fsc->url()}&id={filter_input(INPUT_GET,'id', FILTER_VALIDATE_INT) || filter_input(INPUT_POST,'id', FILTER_VALIDATE_INT) }" method="post" class="form">
+                        -->
+                        <form action="{$fsc->url()}" method="post" class="form">
+                           <tr>
+                              <td>
+                                 <input class="form-control" name="descripcion" value="{$value->referencia} {$value->descripcion}"/>
+                                 <input class="form-control hidden" name="id_factura" value="{$fsc->id_factura}"/>
+                              </td>
+                              <!--Tipo permanece oculto hasta que se crean más metodos de amortización, por porcentaje anual, por ejemplo-->
+                              <td class="text-right hidden">
+                                 <select name="tipo" class="form-control">
+                                    <option value="constante">Constante</option>
+                                    <option value="degresiva">Degresiva</option>
+                                    <option value="progresiva">Progresiva</option>
+                                 </select>
+                              </td>
+                              <td class="text-right">
+                                 <input name="valor" class="form-control text-right" value="{$value->pvpunitario}"/>
+                              </td>
+                              <td class="text-right">
+                                 <input name="residual" value="0" min="0" class="form-control text-right"/>
+                              </td>
+                              <td class="info">
+                                 <input type="number" name="periodos" value="0" min="0" max="200" step="any" class="form-control text-right"/>
+                              </td>
+                              <td>
+                                 <input type="text" name="fecha_inicio" value="{$fsc->fecha}" class="form-control datepicker text-right"/>
+                              </td>
+                              <!--Fecha final permanece oculta hasta que al sumar un periodo la fecha final se actualice instantaneamente-->
+                              <td class="hidden">
+                                 <input type="text" name="fecha_final" value="{$fsc->today()}" class="form-control datepicker text-right"/>
+                              </td>
+                              <td class="text-right">
+                                 <button type="submit" class="btn btn-sm btn-success">
+                                    Generar líneas
+                                 </button>
+                              </td>
+                           </tr>
+                        </form>
+                        {/loop}
+                     </tbody>
                   </table>
                </div>
             </div>
@@ -912,43 +925,46 @@
                            <th width="150" class="text-right"></th>
                         </tr>
                      </thead>
-                     <form action="{$fsc->url()}&id={$_REQUEST['id']}" method="post" class="form">
-                        <tr>
-                           <td>
-                              <input class="form-control" name="descripcion" value="{$fsc->amortizacion->codigo}"/>
-                           </td>
-                           <!--Tipo permanece oculto hasta que se crean más metodos de amortización, por porcentaje anual, por ejemplo-->
-                           <td class="text-right hidden">
-                              <select name="tipo" class="form-control">
-                                 <option value="constante">Constante</option>
-                                 <option value="degresiva">Degresiva</option>
-                                 <option value="progresiva">Progresiva</option>
-                              </select>
-                           </td>
-                           <td class="text-right">
-                              <input name="valor" class="form-control text-right" value="{$fsc->amortizacion->neto}"/>
-                           </td>
-                           <td class="text-right">
-                              <input name="residual" value="0" min="0" class="form-control text-right"/>
-                           </td>
-                           <td class="info">
-                              <input type="number" name="periodos" value="0" min="0" max="200" step="any" class="form-control text-right"/>
-                           </td>
-                           <td>
-                              <input type="text" name="fecha_inicio" value="{$fsc->fecha}" class="form-control datepicker text-right"/>
-                           </td>
-                           <!--Fecha final permanece oculta hasta que al sumar un periodo la fecha final se actualice instantaneamente-->
-                           <td class="hidden">
-                              <input type="text" name="fecha_final" value="{$fsc->today()}" class="form-control datepicker text-right"/>
-                           </td>
-                           <td class="text-right">
-                              <button type="submit" class="btn btn-sm btn-success">
-                                 Generar líneas
-                              </button>
-                           </td>
-                        </tr>
-                     </form>
-
+                     <tbody>
+                        <form action="{$fsc->url()}" method="post" class="form">
+                           
+                           <tr>
+                              <td>
+                                 <input class="form-control" name="descripcion" value="{$fsc->amortizacion->codigo}"/>
+                                 <input class="form-control hidden" name="id_factura" value="{$fsc->id_factura}"/>
+                              </td>
+                              <!--Tipo permanece oculto hasta que se crean más metodos de amortización, por porcentaje anual, por ejemplo-->
+                              <td class="text-right hidden">
+                                 <select name="tipo" class="form-control">
+                                    <option value="constante">Constante</option>
+                                    <option value="degresiva">Degresiva</option>
+                                    <option value="progresiva">Progresiva</option>
+                                 </select>
+                              </td>
+                              <td class="text-right">
+                                 <input name="valor" class="form-control text-right" value="{$fsc->amortizacion->neto}"/>
+                              </td>
+                              <td class="text-right">
+                                 <input name="residual" value="0" min="0" class="form-control text-right"/>
+                              </td>
+                              <td class="info">
+                                 <input type="number" name="periodos" value="0" min="0" max="200" step="any" class="form-control text-right"/>
+                              </td>
+                              <td>
+                                 <input type="text" name="fecha_inicio" value="{$fsc->fecha}" class="form-control datepicker text-right"/>
+                              </td>
+                              <!--Fecha final permanece oculta hasta que al sumar un periodo la fecha final se actualice instantaneamente-->
+                              <td class="hidden">
+                                 <input type="text" name="fecha_final" value="{$fsc->today()}" class="form-control datepicker text-right"/>
+                              </td>
+                              <td class="text-right">
+                                 <button type="submit" class="btn btn-sm btn-success">
+                                    Generar líneas
+                                 </button>
+                              </td>
+                           </tr>
+                        </form>
+                     </tbody>
                   </table>
                </div>
             </div>
@@ -975,127 +991,127 @@
                <th width="200" class="text-right">Período máximo (años)</th>
             </tr>
          </thead>
+         <tbody>
+            <tr>
+               <td>
+                  <div>Edificios y otras construcciones</div>
+               </td>
+               <td>
+                  <div class="text-right">3%</div>
+               </td>
+               <td>
+                  <div class="text-right">68</div>
+               </td>
+            </tr>
 
-         <tr>
-            <td>
-               <div>Edificios y otras construcciones</div>
-            </td>
-            <td>
-               <div class="text-right">3%</div>
-            </td>
-            <td>
-               <div class="text-right">68</div>
-            </td>
-         </tr>
+            <tr>
+               <td>
+                  <div>Instalaciones, mobiliario, enseres y resto del inmovilizado material</div>
+               </td>
+               <td>
+                  <div class="text-right">10%</div>
+               </td>
+               <td>
+                  <div class="text-right">20</div>
+               </td>
+            </tr>
 
-         <tr>
-            <td>
-               <div>Instalaciones, mobiliario, enseres y resto del inmovilizado material</div>
-            </td>
-            <td>
-               <div class="text-right">10%</div>
-            </td>
-            <td>
-               <div class="text-right">20</div>
-            </td>
-         </tr>
+            <tr>
+               <td>
+                  <div>Maquinaria</div>
+               </td>
+               <td>
+                  <div class="text-right">12%</div>
+               </td>
+               <td>
+                  <div class="text-right">18</div>
+               </td>
+            </tr>
 
-         <tr>
-            <td>
-               <div>Maquinaria</div>
-            </td>
-            <td>
-               <div class="text-right">12%</div>
-            </td>
-            <td>
-               <div class="text-right">18</div>
-            </td>
-         </tr>
+            <tr>
+               <td>
+                  <div>Elementos de Transporte</div>
+               </td>
+               <td>
+                  <div class="text-right">16%</div>
+               </td>
+               <td>
+                  <div class="text-right">14</div>
+               </td>
+            </tr>
 
-         <tr>
-            <td>
-               <div>Elementos de Transporte</div>
-            </td>
-            <td>
-               <div class="text-right">16%</div>
-            </td>
-            <td>
-               <div class="text-right">14</div>
-            </td>
-         </tr>
+            <tr>
+               <td>
+                  <div>Equipos para tratamiento de la información y sistemas y programas informáticos</div>
+               </td>
+               <td>
+                  <div class="text-right">26%</div>
+               </td>
+               <td>
+                  <div class="text-right">10</div>
+               </td>
+            </tr>
 
-         <tr>
-            <td>
-               <div>Equipos para tratamiento de la información y sistemas y programas informáticos</div>
-            </td>
-            <td>
-               <div class="text-right">26%</div>
-            </td>
-            <td>
-               <div class="text-right">10</div>
-            </td>
-         </tr>
+            <tr>
+               <td>
+                  <div>Útiles y herramientas</div>
+               </td>
+               <td>
+                  <div class="text-right">30%</div>
+               </td>
+               <td>
+                  <div class="text-right">8</div>
+               </td>
+            </tr>
 
-         <tr>
-            <td>
-               <div>Útiles y herramientas</div>
-            </td>
-            <td>
-               <div class="text-right">30%</div>
-            </td>
-            <td>
-               <div class="text-right">8</div>
-            </td>
-         </tr>
+            <tr>
+               <td>
+                  <div>Ganado vacuno, porcino, ovino y caprino</div>
+               </td>
+               <td>
+                  <div class="text-right">16%</div>
+               </td>
+               <td>
+                  <div class="text-right">14</div>
+               </td>
+            </tr>
 
-         <tr>
-            <td>
-               <div>Ganado vacuno, porcino, ovino y caprino</div>
-            </td>
-            <td>
-               <div class="text-right">16%</div>
-            </td>
-            <td>
-               <div class="text-right">14</div>
-            </td>
-         </tr>
+            <tr>
+               <td>
+                  <div>Ganado equino y frutales no cítricos</div>
+               </td>
+               <td>
+                  <div class="text-right">8%</div>
+               </td>
+               <td>
+                  <div class="text-right">25</div>
+               </td>
+            </tr>
 
-         <tr>
-            <td>
-               <div>Ganado equino y frutales no cítricos</div>
-            </td>
-            <td>
-               <div class="text-right">8%</div>
-            </td>
-            <td>
-               <div class="text-right">25</div>
-            </td>
-         </tr>
+            <tr>
+               <td>
+                  <div>Frutales cítricos y viñedos</div>
+               </td>
+               <td>
+                  <div class="text-right">4%</div>
+               </td>
+               <td>
+                  <div class="text-right">50</div>
+               </td>
+            </tr>
 
-         <tr>
-            <td>
-               <div>Frutales cítricos y viñedos</div>
-            </td>
-            <td>
-               <div class="text-right">4%</div>
-            </td>
-            <td>
-               <div class="text-right">50</div>
-            </td>
-         </tr>
-
-         <tr>
-            <td>
-               <div>Olivar</div>
-            </td>
-            <td>
-               <div class="text-right">2%</div>
-            </td>
-            <td>
-               <div class="text-right">100</div>
-            </td>
-         </tr>
-
+            <tr>
+               <td>
+                  <div>Olivar</div>
+               </td>
+               <td>
+                  <div class="text-right">2%</div>
+               </td>
+               <td>
+                  <div class="text-right">100</div>
+               </td>
+            </tr>
+         </tbody>
       </table>
    </div>
    <!--FIN Tablas de peridos de amortización perteneciente al Plan General Contable de España, con fecha de 2017-->

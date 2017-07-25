@@ -19,14 +19,25 @@
  */
 
 require_model('amortizacion.php');
+require_model('asiento.php');
 require_model('linea_amortizacion.php');
 require_model('factura_proveedor.php');
+require_model('ejercicio.php');
+
 
 /**
  * Class editar_amortizacion
  */
 class editar_amortizacion extends fs_controller
 {
+    /**
+     * @var
+     */
+    public $ano_fiscal;
+    /**
+     * @var
+     */
+    public $ejercicio_actual;
     /**
      * @var
      */
@@ -50,11 +61,11 @@ class editar_amortizacion extends fs_controller
     /**
      * @var int
      */
-    public $periodos = 0;
+    public $periodo_inicial;
     /**
      * @var int
      */
-    public $precio_venta = 0;
+    public $periodos = 0;
     /**
      * @var
      */
@@ -72,96 +83,130 @@ class editar_amortizacion extends fs_controller
      * TODO PHPDoc
      */
     protected function private_core()
-    {
+ {
         $this->factura = false;
         $lineas_amortizaciones = new linea_amortizacion();
 
-        if (filter_input(INPUT_GET,'id') !== null || filter_input(INPUT_POST,'id') !== null ) {
+        if (filter_input(INPUT_GET, 'delete', FILTER_VALIDATE_INT) !== null) {
+            $this->eliminar_asiento(filter_input(INPUT_GET, 'delete', FILTER_VALIDATE_INT));
+        }
+        
+        if (filter_input(INPUT_GET, 'renew', FILTER_VALIDATE_INT) !== null) {
+            $this->resucitar(filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT));
+        }
+        
+        if (filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) !== null) {
             $amortizacion = new amortizacion();
-            $this->amortizacion = $amortizacion->get_by_amortizacion(filter_input(INPUT_GET,'id', FILTER_VALIDATE_INT));
+            $this->amortizacion = $amortizacion->get_by_amortizacion(filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT));
             $factura = new factura_proveedor();
             $this->factura = $factura->get($this->amortizacion->id_factura);
-            
-            $this->fecha_factura = date('d-m-Y', strtotime($this->factura->fecha));
 
-            //$this->listado_lineas = $lineas_amortizaciones->get_by_amortizacion(filter_input(INPUT_GET,'id') || filter_input(INPUT_POST,'id') );
+            $this->fecha_factura = date('d-m-Y', strtotime($this->factura->fecha));
             $this->listado_lineas = $lineas_amortizaciones->get_by_amortizacion($this->amortizacion->id_amortizacion);
 
-            $this->calcular_precio();
-            
-            $this->precio_venta = $this->amortizacion->valor - $this->amortizado;
+            $ejercicio = new ejercicio;
+            $primer_ejercicio = $ejercicio->get_by_fecha($this->amortizacion->fecha_inicio);
+            $this->ejercicio_actual = $ejercicio->get_by_fecha($this->today());
+            $this->ano_fiscal = (int) (Date('Y', strtotime($primer_ejercicio->fechainicio)));
 
+            //Hallar el periodo inicial
+            $periodo_fecha = $this->periodo_por_fecha($this->amortizacion->fecha_inicio, $primer_ejercicio->fechafin, $primer_ejercicio->fechainicio, $this->amortizacion->contabilizacion);
+            $this->periodo_inicial = $periodo_fecha['periodo'];
         }
+        
     }
 
-    /**
-     * TODO PHPDoc
+     /**
+     * @param $fecha
+     * @param $ejercicio_fecha_fin
+     * @param $ejercicio_fecha_inicio
+     * @param $contabilizacion
+     * @return int
      */
-    private function calcular_precio()
-    {
-        $ano_actual = (int)(Date('Y'));
-        $ano_inicio = (int)(Date('Y', strtotime($this->amortizacion->fecha_inicio)));
-        $ano_fin = (int)(Date('Y', strtotime($this->amortizacion->fecha_fin)));
-
-        foreach ($this->listado_lineas as $key => $value) {
-            if ($value->ano == $ano_actual) {
-                //comprueba que linea coincide con el año actual, calculando por medio de los dias trancurridos este año lo que hemos amortizado.
-                if ($value->ano == $ano_inicio) {
-                    if (strtotime(date('d-m-Y')) > strtotime($this->amortizacion->fecha_inicio)) {
-                        $dias = $this->intervalo_fechas(new DateTime($this->amortizacion->fecha_inicio),
-                            new DateTime($this->today()));
-                        $dias_ano = $this->intervalo_fechas(new DateTime($this->amortizacion->fecha_inicio),
-                            new DateTime("31-12-$ano_inicio"));
-                        $this->amortizado += ($value->cantidad / $dias_ano) * $dias;
-                        $this->falta_amortizar = (($value->cantidad / $dias_ano) * $dias);
-                    }
-                } elseif ($value->ano == $ano_fin) {
-                    if (strtotime(date('d-m-Y')) < strtotime($this->amortizacion->fecha_fin)) {
-                        $dias = $this->intervalo_fechas(new DateTime($this->today()),
-                            new DateTime($this->amortizacion->fecha_fin));
-                        $dias_ano = $this->intervalo_fechas(new DateTime("01-01-$ano_fin"),
-                            new DateTime($this->amortizacion->fecha_fin));
-                        $this->amortizado += ($value->cantidad / $dias_ano) * $dias;
-                        $this->falta_amortizar = (($value->cantidad / $dias_ano) * $dias);
-                    } else {
-                        $this->amortizado += $value->cantidad;
-                    }
-                } else {
-                    $dias = $this->intervalo_fechas(new DateTime("01-01-$ano_actual"), new DateTime($this->today()));
-                    $this->amortizado += ($value->cantidad / $this->dias_ano($value->ano)) * $dias;
-                    $this->falta_amortizar = ($value->cantidad / $this->dias_ano($value->ano)) * $dias;
-                }
-                $this->periodos++;
-            } elseif ($value->contabilizada == 1) {
-                $this->amortizado += $value->cantidad;
-                $this->periodos++;
+    private function periodo_por_fecha($fecha, $ejercicio_fecha_fin, $ejercicio_fecha_inicio, $contabilizacion) {
+        
+        $mes = (int) (Date('m', strtotime($ejercicio_fecha_fin)));
+        if ($mes != 12) {
+            $mes_final = 12 - (int) (Date('m', strtotime($ejercicio_fecha_fin)));
+            $mes_inicio = (int) (Date('m', strtotime($fecha)));
+            $mes_fiscal = $mes_inicio + $mes_final - 12;
+            if ($mes_fiscal < 1) {
+                $mes_fiscal = $mes_fiscal + 12;
             }
-        }
-    }
-
-    /**
-     * @param $ano
-     * @return int
-     */
-    private function dias_ano($ano) //Comprueba si el año tiene 365 o 366 dias
-    {
-        if (($ano % 4 == 0) && (($ano % 100 != 0) || ($ano % 400 == 0))) {
-            return 366;
         } else {
-            return 365;
+            $mes_fiscal = (int) (Date('m', strtotime($fecha)));
+        }
+
+        if ($contabilizacion == 'anual') {
+            $periodo = 1;
+            $fecha_inicio_periodo = $ejercicio_fecha_inicio;
+        } elseif ($contabilizacion == 'trimestral') {
+            $periodo = ceil($mes_fiscal / 3);
+            $meses = 3 * ($periodo - 1);
+            $fecha_inicio_periodo = date('d-m-Y', strtotime($ejercicio_fecha_inicio . '+ ' . $meses . ' month'));
+        } elseif ($contabilizacion == 'mensual') {
+            $periodo = $mes_fiscal;
+            $meses = $periodo - 1;
+            $fecha_inicio_periodo = date('d-m-Y', strtotime($ejercicio_fecha_inicio . '+ ' . $meses . ' month'));
+        }
+        return array('periodo' => $periodo, 'fecha_inicio_periodo' => $fecha_inicio_periodo);
+    }
+    
+    /**
+     * @param $id_linea
+     * @return $array
+     */
+    private function eliminar_asiento($id_linea)
+    {
+        $lineas_amortizaciones = new linea_amortizacion();
+        $asiento = new asiento();
+        $linea = $lineas_amortizaciones->get_by_id_linea($id_linea);
+        $asiento_amortizacion = $asiento->get($linea->id_asiento);
+        
+        if ($asiento_amortizacion->delete()) {
+            $lineas_amortizaciones->discount($id_linea);
+            $this->new_message('Asiento eliminado');
+        } else {
+            $this->new_message('No se ha podido eliminar el asiento');
         }
     }
-
+    
     /**
-     * @param $fecha_inicio
-     * @param $fecha_fin
-     * @return int
+     * @param $id_linea
+     * @return $array
      */
-    private function intervalo_fechas($fecha_inicio, $fecha_fin)
+    private function resucitar($id_amortizacion)
     {
-        $dias = $fecha_inicio->diff($fecha_fin);
-        $dias = (int)($dias->format('%a'));
-        $dias++;
-        return $dias;
+        $lineas_amortizaciones = new linea_amortizacion();
+        $asiento = new asiento();
+        $amortizacion_model = new amortizacion();
+        $amortizacion = $amortizacion_model->get_by_amortizacion($id_amortizacion);
+        $asiento_fin_vida = $asiento->get($amortizacion->id_asiento_fin_vida);
+        
+        if ($asiento_fin_vida->delete()) {
+            $amortizacion_model->resurrect($id_amortizacion);
+            
+            $ejercicio_model = new ejercicio();
+            $ejercicio = $ejercicio_model->get_by_fecha($amortizacion->fecha_fin_vida_util);
+            $periodo_fecha = $this->periodo_por_fecha($amortizacion->fecha_fin_vida_util, $ejercicio->fechafin, $ejercicio->fechainicio, $amortizacion->contabilizacion);
+            $ano = $mes = (int) (Date('Y', strtotime($ejercicio->fechainicio)));
+            
+            if (strtotime($amortizacion->fecha_fin_vida_util) < strtotime($amortizacion->fecha_fin)) {
+                $linea = $lineas_amortizaciones->get_by_id_amor_ano_periodo($id_amortizacion, $ano, $periodo_fecha['periodo']);
+                $asiento_amortizacion = $asiento->get($linea->id_asiento);
+
+                if ($asiento_amortizacion->delete()) {
+                    $lineas_amortizaciones->discount($linea->id_linea);
+                    $this->new_message('Amortización reanudada, se ha eliminado el asiento de fin de la vida útil del amortizado y el el asiento que contabilizo el tiempo trancurrido en ese periodo');
+                } else {
+                    $this->new_message('No se ha podido reanudar la amortización');
+                }
+            } else {
+                $this->new_message('Amortización reanudada, se ha eliminado el asiento de fin de la vida útil del amortizado');
+            }
+        } else {
+            $this->new_message('No se ha podido reanudar la amortización');
+        }
     }
+    
 }

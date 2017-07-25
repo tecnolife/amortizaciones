@@ -32,13 +32,25 @@ class linea_amortizacion extends fs_model
      */
     public $cantidad;
     /**
+     * @var false|string
+     */
+    public $fecha;
+    /**
      * @var null
      */
     public $id_amortizacion;
     /**
      * @var null
      */
+    public $id_asiento;
+    /**
+     * @var null
+     */
     public $id_linea;
+    /**
+     * @var null
+     */
+    public $periodo;
 
     /**
      * linea_amortizacion constructor.
@@ -51,14 +63,20 @@ class linea_amortizacion extends fs_model
             $this->ano = $t['ano'];
             $this->contabilizada = $this->str2bool($t['contabilizada']);
             $this->cantidad = $t['cantidad'];
+            $this->fecha = Date('d-m-Y', strtotime($t['fecha']));
             $this->id_amortizacion = $t['idamortizacion'];
+            $this->id_asiento = $t['idasiento'];
             $this->id_linea = $t['idlinea'];
+            $this->periodo = $t['periodo'];
         } else {
             $this->ano = 0;
             $this->contabilizada = 0;
             $this->cantidad = 0;
+            $this->fecha = Date('d-m-Y');
             $this->id_amortizacion = null;
+            $this->id_asiento = null;
             $this->id_linea = null;
+            $this->periodo = null;
         }
     }
 
@@ -81,18 +99,20 @@ class linea_amortizacion extends fs_model
     {
         if ($this->exists()) {
             $sql = "UPDATE lineasamortizaciones SET 
-                 ano = " . $this->var2str($this->ano) . ", 
+                 fecha = " . $this->var2str($this->fecha) . ", 
                  cantidad = " . $this->var2str($this->cantidad) . "
                  WHERE idlinea = " . $this->var2str($this->id_linea) . ";";
             return $this->db->exec($sql);
         } else {
-            $sql = "INSERT INTO lineasamortizaciones (ano,cantidad,idamortizacion) VALUES ("
+            $sql = "INSERT INTO lineasamortizaciones (ano,cantidad,fecha,idamortizacion,periodo) VALUES ("
                 . $this->var2str($this->ano) . ","
                 . $this->var2str($this->cantidad) . ","
-                . $this->var2str($this->id_amortizacion) . ");";
+                . $this->var2str($this->fecha) . ","
+                . $this->var2str($this->id_amortizacion) . ","
+                . $this->var2str($this->periodo) . ");";
 
             if ($this->db->exec($sql)) {
-                //$this->id_linea = $this->db->lastval();
+                $this->id_linea = $this->db->lastval();
                 return true;
             } else {
                 return false;
@@ -143,6 +163,63 @@ class linea_amortizacion extends fs_model
     }
 
     /**
+     * @param $id_linea
+     * @return array
+     */
+    public function get_by_id_linea($id_linea)
+    {
+        $lista = array();
+
+        $sql = $this->db->select("SELECT * FROM lineasamortizaciones WHERE idlinea=" . $this->var2str($id_linea) . ";");
+        if ($sql) {
+            return new \linea_amortizacion($sql[0]);
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * @param $id_linea
+     * @param $ano
+     * @param $periodo
+     * @return array
+     */
+    public function get_by_id_amor_ano_periodo($id_amor,$ano,$periodo)
+    {
+        $lista = array();
+
+        $sql = $this->db->select("SELECT * FROM lineasamortizaciones WHERE 
+                idamortizacion=" . $this->var2str($id_amor) . " AND 
+                ano=" . $this->var2str($ano) . " AND 
+                periodo=" . $this->var2str($periodo) . ";");
+        if ($sql) {
+            return new \linea_amortizacion($sql[0]);
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * @param $id_amor
+     * @param $fecha_inicial
+     * @param $fecha_final
+     * @return array
+     */
+    public function get_by_date_and_amort($id_amor,$fecha_inicial,$fecha_final)
+    {
+        $lista = array();
+
+        $sql = $this->db->select("SELECT * FROM lineasamortizaciones
+                WHERE idamortizacion=" . $this->var2str($id_amor) . " AND fecha >= " . $this->var2str($fecha_inicial) . " AND fecha <= " . $this->var2str($fecha_final) . ";");
+        if ($sql) {
+            foreach ($sql as $d) {
+                $lista[] = new linea_amortizacion ($d);
+            }
+        }
+        return $lista;
+    }
+    
+    /**
      * @param $id_amor
      * @return array
      */
@@ -150,7 +227,7 @@ class linea_amortizacion extends fs_model
     {
         $lista = array();
 
-        $sql = $this->db->select("SELECT * FROM lineasamortizaciones WHERE idamortizacion=" . $this->var2str($id_amor) . " ORDER BY ano;");
+        $sql = $this->db->select("SELECT * FROM lineasamortizaciones WHERE idamortizacion=" . $this->var2str($id_amor) . " ORDER BY fecha;");
         if ($sql) {
             foreach ($sql as $d) {
                 $lista[] = new linea_amortizacion ($d);
@@ -161,11 +238,27 @@ class linea_amortizacion extends fs_model
 
     /**
      * @param $id
+     * @param $id_asiento
      * @return mixed
      */
-    public function count($id)
+    public function count($id, $id_asiento)
     {
-        return $this->db->exec("UPDATE lineasamortizaciones SET contabilizada = TRUE WHERE idlinea = " . $this->var2str($id) . ";");
+        return $this->db->exec("UPDATE lineasamortizaciones SET
+                contabilizada = TRUE, 
+                idasiento = " . $this->var2str($id_asiento) . "
+                WHERE idlinea = " . $this->var2str($id) . ";");
+    }
+    
+    /**
+     * @param $id
+     * @return mixed
+     */ 
+    public function discount($id)
+    {
+        return $this->db->exec("UPDATE lineasamortizaciones SET
+                contabilizada = FALSE, 
+                idasiento = NULL
+                WHERE idlinea = " . $this->var2str($id) . ";");
     }
 
     /**
@@ -190,6 +283,54 @@ class linea_amortizacion extends fs_model
         } else {
             return false;
         }
+    }
+    
+    /**
+     * @param $fecha
+     * @param $ano_antes
+     * @return array
+     */
+    public function slope_old($fecha,$ano_antes)
+    {
+        $lista = array();
+
+        $sql = $this->db->select("SELECT L.ano, L.cantidad, L.contabilizada, L.fecha, L.idamortizacion, L.idasiento, L.idlinea, L.periodo
+                                FROM amortizaciones A, lineasamortizaciones L 
+                                WHERE A.idamortizacion = L.idamortizacion 
+                                AND L.contabilizada = FALSE 
+                                AND A.finvidautil = FALSE 
+                                AND A.amortizando = TRUE 
+                                AND L.fecha >= " . $this->var2str($ano_antes) . "
+                                AND L.fecha <= " . $this->var2str($fecha) . " 
+                                ORDER BY fecha;");
+        if ($sql) {
+            foreach ($sql as $d) {
+                $lista[] = new linea_amortizacion ($d);
+            }
+        }
+        return $lista;
+    }
+    
+    /**
+     * @param $fecha
+     * @param $ano_antes
+     * @return array
+     */
+    public function slope($fecha,$ano_antes)
+    {
+        $lista = array();
+
+        $sql = $this->db->select("SELECT * FROM lineasamortizaciones WHERE 
+                                 fecha >= " . $this->var2str($ano_antes) . " AND 
+                                 fecha <= " . $this->var2str($fecha) . " AND 
+                                 contabilizada = FALSE
+                                ORDER BY fecha;");
+        if ($sql) {
+            foreach ($sql as $d) {
+                $lista[] = new linea_amortizacion ($d);
+            }
+        }
+        return $lista;
     }
 
     /**

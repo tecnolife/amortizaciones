@@ -1,8 +1,5 @@
 Permite crear amortizaciones desde las facturas de compra.
 Añade el menú amortizaciones a compras, desde donde podemos ver las
 amortizaciones, su estado y contabilizarlas.
-Da error al crear las tablas en PostreSQL:
-1: intenta crear las tablas con '' en lugar de comillas "", lo que provoca un error
-2: al AUTO_INCREMENT también está dando error
 <br/>
 Licencia LGPL 3

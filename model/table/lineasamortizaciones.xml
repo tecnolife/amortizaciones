@@ -22,15 +22,30 @@
         <defecto>false</defecto>
     </columna>
     <columna>
+        <nombre>fecha</nombre>
+        <tipo>date</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>idamortizacion</nombre>
         <tipo>integer</tipo>
         <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>idasiento</nombre>
+        <tipo>integer</tipo>
+        <nulo>SI</nulo>
     </columna>
     <columna>
         <nombre>idlinea</nombre>
         <tipo>serial</tipo>
         <nulo>NO</nulo>
         <defecto>nextval('lineasamortizaciones_idlinea_seq'::regclass)</defecto>
+    </columna>
+    <columna>
+        <nombre>periodo</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
     </columna>
     <restriccion>
         <nombre>lineasamortizaciones_pkey</nombre>

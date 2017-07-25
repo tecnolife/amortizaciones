@@ -7,6 +7,32 @@
 -->
 <tabla>
     <columna>
+        <nombre>amortizando</nombre>
+        <tipo>boolean</tipo>
+        <nulo>YES</nulo>
+        <defecto>True</defecto>
+    </columna>
+   <columna>
+        <nombre>contabilizacion</nombre>
+        <tipo>varchar(10)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>coddivisa</nombre>
+        <tipo>character varying(3)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>codserie</nombre>
+        <tipo>character varying(2)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>codsubcuentabeneficios</nombre>
+        <tipo>character varying(15)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>codsubcuentacierre</nombre>
         <tipo>character varying(15)</tipo>
         <nulo>YES</nulo>
@@ -22,18 +48,33 @@
         <nulo>YES</nulo>
     </columna>
     <columna>
+        <nombre>codsubcuentaperdidas</nombre>
+        <tipo>character varying(15)</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>completada</nombre>
+        <tipo>boolean</tipo>
+        <nulo>YES</nulo>
+        <defecto>False</defecto>
+    </columna>
+    <columna>
         <nombre>descripcion</nombre>
         <tipo>text</tipo>
         <nulo>YES</nulo>
     </columna>
     <columna>
-        <nombre>estado</nombre>
-        <tipo>varchar(12)</tipo>
+        <nombre>documento</nombre>
+        <tipo>character varying(30)</tipo>
         <nulo>YES</nulo>
-        <defecto>'amortizando'</defecto>
     </columna>
     <columna>
         <nombre>fechafin</nombre>
+        <tipo>date</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>fechafinvidautil</nombre>
         <tipo>date</tipo>
         <nulo>YES</nulo>
     </columna>
@@ -43,15 +84,31 @@
         <nulo>YES</nulo>
     </columna>
     <columna>
+        <nombre>finvidautil</nombre>
+        <tipo>boolean</tipo>
+        <nulo>YES</nulo>
+        <defecto>False</defecto>
+    </columna>
+    <columna>
         <nombre>idamortizacion</nombre>
         <tipo>serial</tipo>
         <nulo>NO</nulo>
         <defecto>nextval('amortizaciones_idamortizacion_seq'::regclass)</defecto>
     </columna>
     <columna>
+        <nombre>idasientofinvida</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <columna>
         <nombre>idfactura</nombre>
         <tipo>integer</tipo>
         <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>periodofinal</nombre>
+        <tipo>integer</tipo>
+        <nulo>YES</nulo>
     </columna>
     <columna>
         <nombre>periodos</nombre>
@@ -72,6 +129,12 @@
         <nombre>valor</nombre>
         <tipo>double precision</tipo>
         <nulo>YES</nulo>
+    </columna>
+    <columna>
+        <nombre>vendida</nombre>
+        <tipo>boolean</tipo>
+        <nulo>YES</nulo>
+        <defecto>False</defecto>
     </columna>
     <restriccion>
         <nombre>amortizaciones_pkey</nombre>

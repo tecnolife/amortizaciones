@@ -19,7 +19,22 @@
  */
 class amortizacion extends fs_model
 {
-
+    /**
+     * @var int
+     */
+    public $amortizando;
+    /**
+     * @var null
+     */
+    public $coddivisa;
+    /**
+     * @var null
+     */
+    public $codserie;
+    /**
+     * @var null
+     */
+    public $cod_subcuenta_beneficios;
     /**
      * @var null
      */
@@ -35,11 +50,23 @@ class amortizacion extends fs_model
     /**
      * @var null
      */
+    public $cod_subcuenta_perdidas;
+    /**
+     * @var int
+     */
+    public $completada;
+    /**
+     * @var null
+     */
+    public $contabilizacion;
+    /**
+     * @var null
+     */
     public $descripcion;
     /**
      * @var null
      */
-    public $estado;
+    public $documento;
     /**
      * @var false|string
      */
@@ -47,7 +74,15 @@ class amortizacion extends fs_model
     /**
      * @var false|string
      */
+    public $fecha_fin_vida_util;
+    /**
+     * @var false|string
+     */
     public $fecha_inicio;
+    /**
+     * @var int
+     */
+    public $fin_vida_util;
     /**
      * @var null
      */
@@ -55,7 +90,15 @@ class amortizacion extends fs_model
     /**
      * @var null
      */
+    public $id_asiento_fin_vida;
+    /**
+     * @var null
+     */
     public $id_factura;
+    /**
+     * @var int
+     */
+    public $periodo_final;
     /**
      * @var int
      */
@@ -72,6 +115,10 @@ class amortizacion extends fs_model
      * @var int
      */
     public $valor;
+    /**
+     * @var int
+     */
+    public $vendida;
 
     /**
      * amortizacion constructor.
@@ -82,7 +129,6 @@ class amortizacion extends fs_model
         parent::__construct('amortizaciones');
         if ($t) {/*
          $this->descripcion = NULL;
-         $this->estado = NULL;
          $this->fecha_fin = Date('d-m-Y');
          $this->fecha_inicio = Date('d-m-Y');
          $this->id_amortizacion = NULL;
@@ -92,35 +138,59 @@ class amortizacion extends fs_model
          $this->tipo = NULL;
          $this->valor = NULL;
          */
+            $this->amortizando = $this->str2bool($t['amortizando']);
+            $this->coddivisa = $t['coddivisa'];
+            $this->codserie = $t['codserie'];
+            $this->cod_subcuenta_beneficios = $this->intval($t['codsubcuentabeneficios']);
             $this->cod_subcuenta_cierre = $this->intval($t['codsubcuentacierre']);
             $this->cod_subcuenta_debe = $this->intval($t['codsubcuentadebe']);
             $this->cod_subcuenta_haber = $this->intval($t['codsubcuentahaber']);
+            $this->cod_subcuenta_perdidas = $this->intval($t['codsubcuentaperdidas']);
+            $this->completada = $this->str2bool($t['completada']);
+            $this->contabilizacion = $t['contabilizacion'];
             $this->descripcion = $t['descripcion'];
-            $this->estado = $t['estado'];
+            $this->documento = $t['documento'];
             $this->fecha_fin = Date('d-m-Y', strtotime($t['fechafin']));
+            $this->fecha_fin_vida_util = Date('d-m-Y', strtotime($t['fechafinvidautil']));
             $this->fecha_inicio = Date('d-m-Y', strtotime($t['fechainicio']));
+            $this->fin_vida_util = $this->str2bool($t['finvidautil']);
             $this->id_amortizacion = $this->intval($t['idamortizacion']);
+            $this->id_asiento_fin_vida = $this->intval($t['idasientofinvida']);
             $this->id_factura = $this->intval($t['idfactura']);
+            $this->periodo_final = $t['periodofinal'];
             $this->periodos = $t['periodos'];
             $this->residual = $t['residual'];
             $this->tipo = $t['tipo'];
             $this->valor = $t['valor'];
+            $this->vendida = $this->str2bool($t['vendida']);
 
             //str2bool() necesario para los valores booleanos
         } else {
+            $this->amortizando = null;
+            $this->coddivisa = null;
+            $this->codserie = null;
+            $this->cod_subcuenta_beneficios = null;
             $this->cod_subcuenta_cierre = null;
             $this->cod_subcuenta_debe = null;
             $this->cod_subcuenta_haber = null;
+            $this->cod_subcuenta_perdidas = null;
+            $this->completada = FALSE;
+            $this->contabilizacion = null;
             $this->descripcion = null;
-            $this->estado = null;
+            $this->documento = null;
             $this->fecha_fin = Date('d-m-Y');
+            $this->fecha_fin_vida_util = Date('d-m-Y');
             $this->fecha_inicio = Date('d-m-Y');
+            $this->fin_vida_util = null;
             $this->id_amortizacion = null;
+            $this->id_asiento_fin_vida = null;
             $this->id_factura = null;
+            $this->periodo_final = 0;
             $this->periodos = 0;
             $this->residual = 0;
             $this->tipo = null;
             $this->valor = 0;
+            $this->vendida = null;
 
         }
     }
@@ -147,8 +217,8 @@ class amortizacion extends fs_model
                  codsubcuentacierre = " . $this->var2str($this->cod_subcuenta_cierre) . ",
                  codsubcuentadebe = " . $this->var2str($this->cod_subcuenta_debe) . ",
                  codsubcuentahaber = " . $this->var2str($this->cod_subcuenta_haber) . ",
+                 contabilizacion = " . $this->var2str($this->contabilizacion) . ",    
                  descripcion = " . $this->var2str($this->descripcion) . ", 
-                 estado = " . $this->var2str($this->estado) . ",
                  fechafin = " . $this->var2str($this->fecha_fin) . ",
                  fechainicio = " . $this->var2str($this->fecha_inicio) . ",
                  idamortizacion = " . $this->var2str($this->id_amortizacion) . ",
@@ -160,14 +230,21 @@ class amortizacion extends fs_model
                  WHERE idamortizacion = " . $this->var2str($this->id_amortizacion) . ";";
             return $this->db->exec($sql);
         } else {
-            $sql = "INSERT INTO amortizaciones (codsubcuentacierre,codsubcuentadebe,codsubcuentahaber,descripcion,fechafin,fechainicio,idfactura,periodos,residual,tipo,valor) VALUES ("
+            $sql = "INSERT INTO amortizaciones (coddivisa,codserie,codsubcuentabeneficios,codsubcuentacierre,codsubcuentadebe,codsubcuentahaber,codsubcuentaperdidas,contabilizacion,descripcion,documento,fechafin,fechainicio,idfactura,periodofinal,periodos,residual,tipo,valor) VALUES ("
+                . $this->var2str($this->coddivisa) . ","
+                . $this->var2str($this->codserie) . ","
+                . $this->var2str($this->cod_subcuenta_beneficios) . ","
                 . $this->var2str($this->cod_subcuenta_cierre) . ","
                 . $this->var2str($this->cod_subcuenta_debe) . ","
                 . $this->var2str($this->cod_subcuenta_haber) . ","
+                . $this->var2str($this->cod_subcuenta_perdidas) . ","
+                . $this->var2str($this->contabilizacion) . ","
                 . $this->var2str($this->descripcion) . ","
+                . $this->var2str($this->documento) . ","
                 . $this->var2str($this->fecha_fin) . ","
                 . $this->var2str($this->fecha_inicio) . ","
                 . $this->var2str($this->id_factura) . ","
+                . $this->var2str($this->periodo_final) . ","
                 . $this->var2str($this->periodos) . ","
                 . $this->var2str($this->residual) . ","
                 . $this->var2str($this->tipo) . ","
@@ -197,25 +274,72 @@ class amortizacion extends fs_model
      */
     public function cancel($id)
     {
-        return $this->db->exec("UPDATE amortizaciones SET estado = 'anulada' WHERE idamortizacion = " . $this->var2str($id) . ";");
+        return $this->db->exec("UPDATE amortizaciones SET amortizando = FALSE WHERE idamortizacion = " . $this->var2str($id) . ";");
+    }
+    
+    /**
+     * @param $id
+     * @return mixed
+     */
+    public function restart($id)
+    {
+        return $this->db->exec("UPDATE amortizaciones SET amortizando = TRUE WHERE idamortizacion = " . $this->var2str($id) . ";");
     }
 
     /**
      * @param $id
      * @return mixed
      */
-    public function sale($id)
+    public function resurrect($id)
     {
-        return $this->db->exec("UPDATE amortizaciones SET estado = 'vendida' WHERE idamortizacion = " . $this->var2str($id) . ";");
+        return $this->db->exec("UPDATE amortizaciones SET finvidautil = FALSE WHERE idamortizacion = " . $this->var2str($id) . ";");
     }
-
+    
     /**
      * @param $id
      * @return mixed
      */
     public function complete($id)
     {
-        return $this->db->exec("UPDATE amortizaciones SET estado = 'completada' WHERE idamortizacion = " . $this->var2str($id) . ";");
+        return $this->db->exec("UPDATE amortizaciones SET completada = TRUE WHERE idamortizacion = " . $this->var2str($id) . ";");
+    }
+    
+    /**
+     * @param $id
+     * @return mixed
+     */
+    public function sale($id)
+    {
+        return $this->db->exec("UPDATE amortizaciones SET vendida = TRUE WHERE idamortizacion = " . $this->var2str($id) . ";");
+    }
+
+    /**
+     * @param $id
+     * @return mixed
+     */
+    public function end_life($id)
+    {
+        return $this->db->exec("UPDATE amortizaciones SET finvidautil = TRUE WHERE idamortizacion = " . $this->var2str($id) . ";");
+    }
+    
+    /**
+     * @param $id
+     * @param $id_asiento
+     * @return mixed
+     */
+    public function end_life_count($id, $id_asiento)
+    {
+        return $this->db->exec("UPDATE amortizaciones SET idasientofinvida = " . $this->var2str($id_asiento) . " WHERE idamortizacion = " . $this->var2str($id) . ";");
+    }
+    
+    /**
+     * @param $id
+     * @param $fecha
+     * @return mixed
+     */
+    public function date_end_life($id, $fecha)
+    {
+        return $this->db->exec("UPDATE amortizaciones SET fechafinvidautil = " . $this->var2str($fecha) . " WHERE idamortizacion = " . $this->var2str($id) . ";");
     }
 
     /**

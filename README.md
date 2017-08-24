@@ -49,6 +49,12 @@ https://www.facturascripts.com
    <li>Menú, ahora el enlace a las amortizaciones se encuentra en "Contabilidad" en lugar de en "Compras".</li>
    <li>Autocompletado al poner las subcuentas contables, como en los artículos.</li>
    <li>Si contabilizamos una línea y el ejercicio contable no esta creado, no lo creara, sino que te dira que lo creas e importes los datos contables.</li>
-   <li>Aistente para aumentar el valor de las amortizaciones a partir de una fecha concreta, por si hay que realizar alguna reparación en un amortizado.</li>
+   <li>Asistente para aumentar el valor de las amortizaciones a partir de una fecha concreta, por si hay que realizar alguna reparación en un amortizado.</li>
    <li>Asistente para aumentar y disminuir los años o periodos de una amortización a partir de una fecha concreta.</li>
+</ul>
+
+<br/>
+<strong>V5</strong>
+<ul>
+   <li>Solucionar un pequeño error al visualizar las tablas de periodos de las amortizaciones y las tablas de subcuentas.</li>
 </ul>

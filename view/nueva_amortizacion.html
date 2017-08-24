@@ -6,12 +6,12 @@
    $(document).ready(function () {
       $('#b_tabla_amortizaciones').click(function (event) {
          event.preventDefault();
-         cargar('#tabla_amortizaciones', '/facturascripts/index.php?page=tabla_amortizaciones')
+         cargar('#tabla_amortizaciones', 'index.php?page=tabla_amortizaciones')
          $('#modal_amortizaciones').modal('show');
       });
       $('#b_tabla_subcuentas').click(function (event) {
          event.preventDefault();
-         cargar('#tabla_subcuentas', '/facturascripts/index.php?page=tabla_subcuentas')
+         cargar('#tabla_subcuentas', 'index.php?page=tabla_subcuentas')
          $('#modal_subcuentas').modal('show');
       });
       $("#ac_cod_subcuenta_cierre").autocomplete({

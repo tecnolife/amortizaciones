@@ -29,7 +29,7 @@ class tabla_amortizaciones extends fs_controller
      */
     public function __construct()
     {
-        parent::__construct(__CLASS__, 'tabla de amortizaciones', 'compras', false, false);
+        parent::__construct(__CLASS__, 'tabla de amortizaciones', 'contabilidad', false, false);
     }
 
     /**

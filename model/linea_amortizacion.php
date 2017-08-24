@@ -125,9 +125,17 @@ class linea_amortizacion extends fs_model
      */
     public function delete()
     {
-        return $this->db->exec("DELETE FROM lineasamortizaciones WHERE idamortizacion = " . $this->var2str($this->id_amortizacion) . ";");
+        return $this->db->exec("DELETE FROM lineasamortizaciones WHERE idlinea = " . $this->var2str($this->id_linea) . ";");
     }
 
+    /**
+     * @return mixed
+     */
+    public function delete_by_amor()
+    {
+        return $this->db->exec("DELETE FROM lineasamortizaciones WHERE idamortizacion = " . $this->var2str($this->id_amortizacion) . ";");
+    }
+    
     /**
      * @return array
      */

@@ -20,6 +20,7 @@
 
 require_model('factura_proveedor.php');
 require_model('ejercicio.php');
+require_model('subcuenta.php');
 
 /**
  * Class nueva_amortizacion
@@ -43,7 +44,7 @@ class nueva_amortizacion extends fs_controller
      */
     public $cod_serie;
     /**
-     * @var
+     * @int
      */
     public $id_factura;
     /**
@@ -71,10 +72,33 @@ class nueva_amortizacion extends fs_controller
      */
     public $documento;
     /**
+     * @int
+     */
+    public $periodos;
+    /**
      * @var
      */
     public $periodo_inicial;
-
+    /**
+     * @int
+     */
+    public $cod_subcuenta_beneficios;
+    /**
+     * @int
+     */
+    public $cod_subcuenta_cierre;
+    /**
+     * @int
+     */
+    public $cod_subcuenta_debe;
+    /**
+     * @int
+     */
+    public $cod_subcuenta_haber;
+    /**
+     * @int
+     */
+    public $cod_subcuenta_perdidas;
     /**
      * nueva_amortizacion constructor.
      */
@@ -89,8 +113,21 @@ class nueva_amortizacion extends fs_controller
     protected function private_core() {
         $this->share_extension();
         $this->amortizacion = false;
+        $ejercicio = new ejercicio();
 
-        if (filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) !== null || filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT) !== null) {
+        if (isset($_REQUEST['buscar_subcuenta'])) {
+                    /// esto es para el autocompletar las subcuentas de la vista
+                    $this->buscar_subcuenta();
+                } else {
+                    $sc = new subcuenta();
+                    $this->cod_subcuenta_cierre = $sc;
+                    $this->cod_subcuenta_debe = $sc;
+                    $this->cod_subcuenta_haber = $sc;
+                    $this->cod_subcuenta_perdidas = $sc;
+                    $this->cod_subcuenta_beneficios = $sc;
+                }
+        
+        if (filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) !== null) {
             $this->id_factura = (filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT));         
             $factura = new factura_proveedor();
             $this->amortizacion = $factura->get($this->id_factura);            
@@ -102,7 +139,14 @@ class nueva_amortizacion extends fs_controller
 
         if (filter_input(INPUT_POST, 'periodos', FILTER_VALIDATE_INT) !== null) {
             $this->id_factura = filter_input(INPUT_POST, 'id_factura', FILTER_VALIDATE_INT);
-            if (filter_input(INPUT_POST, 'periodos', FILTER_VALIDATE_INT) != 0) {
+            $this->periodos = filter_input(INPUT_POST, 'periodos', FILTER_VALIDATE_INT);
+            
+            if ($this->periodos == 0) {
+                $this->new_error_msg('No se han podido generar las líneas de amortización, porque el periodo de años estaba a 0');
+            } elseif ($ejercicio->get_by_fecha(filter_input(INPUT_POST,'fecha_inicio'), FALSE, FALSE)->estado == 'CERRADO') {
+                $this->new_error_msg('No se han podido recalcular las líneas de amortización, la fecha introducida pertenece a un ejercicio CERRADO');
+                $this->periodos = 0;
+            } else {
                 
                 $this->datos = array(
                     'descripcion' => filter_input(INPUT_POST,'descripcion'),
@@ -118,12 +162,22 @@ class nueva_amortizacion extends fs_controller
                 );                
                 
                 $this->fecha_fin = date('d-m-Y', strtotime($this->datos['fecha_inicio'] . '+' . $this->datos['periodos'] . ' year - 1 day'));
+                
+                if (isset($_REQUEST['buscar_subcuenta'])) {
+                    /// esto es para el autocompletar las subcuentas de la vista
+                    $this->buscar_subcuenta();
+                } else {
+                    $sc = new subcuenta();
+                    $this->cod_subcuenta_cierre = $sc;
+                    $this->cod_subcuenta_debe = $sc;
+                    $this->cod_subcuenta_haber = $sc;
+                    $this->cod_subcuenta_perdidas = $sc;
+                    $this->cod_subcuenta_beneficios = $sc;
+                }
 
                 if ($this->datos['tipo'] == 'constante') {
                     $this->constante();
                 }
-            } else {
-                $this->new_error_msg('No se han podido generar las líneas de amortización, porque el periodo de años estaba a 0');
             }
         }
     }
@@ -159,7 +213,7 @@ class nueva_amortizacion extends fs_controller
         $fecha = $ejercicio_factura->fechainicio;
         $total = 0;
 
-         $mes = (int) (Date('m', strtotime($ejercicio_factura->fechafin)));
+        $mes = (int) (Date('m', strtotime($ejercicio_factura->fechafin)));
         if ($mes != 12) {
             $mes_final = 12 - (int) (Date('m', strtotime($ejercicio_factura->fechafin)));
             $mes_inicio = (int) (Date('m', strtotime($this->datos['fecha_inicio'])));
@@ -173,241 +227,105 @@ class nueva_amortizacion extends fs_controller
         
         if ($this->datos['contabilizacion'] == 'anual') {
             $this->periodo_inicial = 1;
+            $periodos_ano = 1;
+            $periodo = 1;
+            $fecha = date('d-m-Y', strtotime($fecha . '+1 year'));
+            $meses = 12;
         } elseif ($this->datos['contabilizacion'] == 'trimestral') {
             $this->periodo_inicial = ceil($mes_fiscal / 3);
+            $periodos_ano = 4;
+            $periodo = $this->periodo_inicial * 3;
+            $fecha = date('d-m-Y', strtotime($fecha . '+' . $periodo . ' month'));
+            $meses = 3;
         } elseif ($this->datos['contabilizacion'] == 'mensual') {
             $this->periodo_inicial = $mes_fiscal;
+            $periodos_ano = 12;
+            $periodo = $mes_fiscal;
+            $fecha = date('d-m-Y', strtotime($fecha . '+' .$periodo. ' month'));
+            $meses = 1;
         }
         
-        //ANUAL
-        if ($this->datos['contabilizacion'] == 'anual') {
+        if ($dias != 0) {
             
-            $periodo = 1;
-            
-            if ($dias != 0) {
-                $fecha = date('d-m-Y', strtotime($fecha . '+1 year'));
-                $dias_ano_fiscal = $this->diferencia_dias($ejercicio_factura->fechainicio, $ejercicio_factura->fechafin) + 1;
-                $valor = $amortizable / $this->datos['periodos'] / $dias_ano_fiscal * ($dias_ano_fiscal - $dias);
+
+            $dias_ano_fiscal = $this->diferencia_dias($ejercicio_factura->fechainicio, $ejercicio_factura->fechafin) + 1;
+            $valor = ($amortizable / $this->datos['periodos'] / $dias_ano_fiscal * ($dias_ano_fiscal - $dias)) - ((($amortizable / $this->datos['periodos']) / $periodos_ano) * ($periodos_ano - $this->periodo_inicial));
+            $this->lineas[$this->ano_fiscal + $contador . '_' . $this->periodo_inicial] = array(
+                'ano' => $this->ano_fiscal + $contador,
+                'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
+                'valor' => round($valor, 2),
+                'periodo' => $this->periodo_inicial
+            );
+            $total = $total + round($valor, 2);
+            $periodo = $this->periodo_inicial + 1;
+
+            while ($periodo <= $periodos_ano) {
+
+                $fecha = date('d-m-Y', strtotime($fecha . '+' . $meses . ' month'));
+
                 $this->lineas[$this->ano_fiscal + $contador . '_' . $periodo] = array(
                     'ano' => $this->ano_fiscal + $contador,
                     'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
-                    'valor' => round($valor, 2),
-                    'periodo' => 1
+                    'valor' => round(($amortizable / $this->datos['periodos']) / $periodos_ano, 2),
+                    'periodo' => $periodo
                 );
-                $total = $total + round($valor,2);
-                $contador++;
+                $total = $total + round(($amortizable / $this->datos['periodos']) / $periodos_ano, 2);
+                $periodo++;
             }
+            $contador++;
+        }
 
-            while ($contador < $this->datos['periodos']) {
-                $fecha = date('d-m-Y', strtotime($fecha . '+1 year'));
-                
-                if ($contador == $this->datos['periodos'] - 1 && $dias == 0) {
+        while ($contador < $this->datos['periodos']) {
+            $periodo = 1;
+            while ($periodo <= $periodos_ano) {
+
+                $fecha = date('d-m-Y', strtotime($fecha .'+' . $meses . ' month'));
+
+                if ($contador == $this->datos['periodos'] - 1 && $periodo == $periodos_ano && $dias == 0) {
                     $this->lineas[$this->ano_fiscal + $contador . '_' . $periodo] = array(
                         'ano' => $this->ano_fiscal + $contador,
                         'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
                         'valor' => round($amortizable - $total, 2),
-                        'periodo' => 1
+                        'periodo' => $periodo
                     );
                 } else {
                     $this->lineas[$this->ano_fiscal + $contador . '_' . $periodo] = array(
                         'ano' => $this->ano_fiscal + $contador,
                         'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
-                        'valor' => round($amortizable / $this->datos['periodos'], 2),
-                        'periodo' => 1
+                        'valor' => round(($amortizable / $this->datos['periodos']) / $periodos_ano, 2),
+                        'periodo' => $periodo
                     );
-                    $total = $total + round($amortizable / $this->datos['periodos'], 2);
+                    $total = $total + round(($amortizable / $this->datos['periodos']) / $periodos_ano, 2);
                 }
-                $contador++;
+                $periodo++;
             }
+            $contador++;
+        }
 
-            if ($dias != 0) {
-                $fecha = date('d-m-Y', strtotime($fecha . '+1 year'));
-                $valor = round($amortizable / $this->datos['periodos'] - $valor, 2);
+        if ($dias != 0) {
+            $periodo = 1;
+            while ($periodo < $this->periodo_inicial) {
+
+                $fecha = date('d-m-Y', strtotime($fecha . '+' . $meses . ' month'));
+
                 $this->lineas[$this->ano_fiscal + $contador . '_' . $periodo] = array(
                     'ano' => $this->ano_fiscal + $contador,
                     'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
-                    'valor' => round($amortizable - $total,2),
-                    'periodo' => 1
+                    'valor' => round(($amortizable / $this->datos['periodos']) / $periodos_ano, 2),
+                    'periodo' => $periodo
                 );
-            }
-        }
-        
-        //TRIMESTRAL
-        if ($this->datos['contabilizacion'] == 'trimestral') {
-                        
-            if ($dias != 0) {  
-                
-                $periodo = $this->periodo_inicial * 3;
-                $fecha = date('d-m-Y', strtotime($fecha . '+' .$periodo. ' month'));
-                
-                $dias_ano_fiscal = $this->diferencia_dias($ejercicio_factura->fechainicio, $ejercicio_factura->fechafin) + 1;
-                $valor = ($amortizable / $this->datos['periodos'] / $dias_ano_fiscal * ($dias_ano_fiscal - $dias)) - ((($amortizable / $this->datos['periodos']) / 4) * (4 - $this->periodo_inicial));
-                $this->lineas[$this->ano_fiscal + $contador . '_' . $this->periodo_inicial] = array(
-                    'ano' => $this->ano_fiscal + $contador,
-                    'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
-                    'valor' => round($valor, 2),
-                    'periodo' => $this->periodo_inicial
-                );
-                $total = $total + round($valor, 2);
-                $periodo = $this->periodo_inicial + 1;
-                
-                while ($periodo <= 4) {
-                    
-                    $fecha = date('d-m-Y', strtotime($fecha . '+ 3 month'));
-                    
-                    $this->lineas[$this->ano_fiscal + $contador . '_' . $periodo] = array(
-                        'ano' => $this->ano_fiscal + $contador,
-                        'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
-                        'valor' => round(($amortizable / $this->datos['periodos']) / 4, 2),
-                        'periodo' => $periodo
-                    );
-                    $total = $total + round(($amortizable / $this->datos['periodos']) / 4, 2);
-                    $periodo++;
-                }
-                $contador++;
+                $total = $total + round(($amortizable / $this->datos['periodos']) / $periodos_ano, 2);
+                $periodo++;
             }
 
-            while ($contador < $this->datos['periodos']) {              
-                $periodo = 1;
-                while ($periodo <= 4) {
-                    
-                    $fecha = date('d-m-Y', strtotime($fecha . '+ 3 month'));
-                    
-                    if ($contador == $this->datos['periodos'] - 1 && $periodo == 4 && $dias == 0) {
-                        $this->lineas[$this->ano_fiscal + $contador . '_' . $periodo] = array(
-                            'ano' => $this->ano_fiscal + $contador,
-                            'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
-                            'valor' => round($amortizable - $total, 2),
-                            'periodo' => $periodo
-                        );
-                    } else {
-                        $this->lineas[$this->ano_fiscal + $contador . '_' . $periodo] = array(
-                            'ano' => $this->ano_fiscal + $contador,
-                            'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
-                            'valor' => round(($amortizable / $this->datos['periodos']) / 4, 2),
-                            'periodo' => $periodo
-                        );
-                        $total = $total + round(($amortizable / $this->datos['periodos']) / 4, 2);
-                    }
-                    $periodo++;
-                }
-                $contador++;
-            }
-
-            if ($dias != 0) {
-                $periodo = 1;
-                while ($periodo < $this->periodo_inicial) {
-
-                    $fecha = date('d-m-Y', strtotime($fecha . '+ 3 month'));
-
-                    $this->lineas[$this->ano_fiscal + $contador . '_' . $periodo] = array(
-                        'ano' => $this->ano_fiscal + $contador,
-                        'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
-                        'valor' => round(($amortizable / $this->datos['periodos']) / 4, 2),
-                        'periodo' => $periodo
-                    );
-                    $total = $total + round(($amortizable / $this->datos['periodos']) / 4, 2);
-                    $periodo++;
-                }
-                
-                $fecha = date('d-m-Y', strtotime($fecha . '+ 3 month'));
-                $valor = $amortizable / $this->datos['periodos'] / 4 - $valor;
-                $this->lineas[$this->ano_fiscal + $contador . '_' . $this->periodo_inicial] = array(
-                    'ano' => $this->ano_fiscal + $contador,
-                    'fecha' => $this->fecha_fin ,
-                    'valor' => round($amortizable - $total, 2),
-                    'periodo' => $this->periodo_inicial
-                );
-            }
-        }
-        
-        //MENSUAL
-        if ($this->datos['contabilizacion'] == 'mensual') {
-      
-            if ($dias != 0) {  
-                
-                $fecha = date('d-m-Y', strtotime($fecha . '+' .$mes_fiscal. ' month'));
-                
-                $dias_ano_fiscal = $this->diferencia_dias($ejercicio_factura->fechainicio, $ejercicio_factura->fechafin) + 1;
-                $valor = ($amortizable / $this->datos['periodos'] / $dias_ano_fiscal * ($dias_ano_fiscal - $dias)) - ((($amortizable / $this->datos['periodos']) / 12) * (12 - $mes_fiscal));
-                $this->lineas[$this->ano_fiscal + $contador . '_' . $mes_fiscal] = array(
-                    'ano' => $this->ano_fiscal + $contador,
-                    'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
-                    'valor' => round($valor, 2),
-                    'periodo' => $mes_fiscal
-                );
-                $total = $total + round($valor, 2);
-                $periodo = $mes_fiscal + 1;
-                
-                while ($periodo <= 12) {
-                    
-                    $fecha = date('d-m-Y', strtotime($fecha . '+ 1 month'));
-                    
-                    $this->lineas[$this->ano_fiscal + $contador . '_' . $periodo] = array(
-                        'ano' => $this->ano_fiscal + $contador,
-                        'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
-                        'valor' => round(($amortizable / $this->datos['periodos']) / 12, 2),
-                        'periodo' => $periodo
-                    );
-                    $total = $total + round(($amortizable / $this->datos['periodos']) / 12, 2);
-                    $periodo++;
-                }
-                $contador++;
-            }
-
-            while ($contador < $this->datos['periodos']) {              
-                $periodo = 1;
-                while ($periodo <= 12) {
-                    
-                    $fecha = date('d-m-Y', strtotime($fecha . '+ 1 month'));
-                    
-                    if ($contador == $this->datos['periodos'] - 1 && $periodo == 12 && $dias == 0) {
-                        $this->lineas[$this->ano_fiscal + $contador . '_' . $periodo] = array(
-                            'ano' => $this->ano_fiscal + $contador,
-                            'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
-                            'valor' => round($amortizable - $total,2),
-                            'periodo' => $periodo
-                        );
-                    } else {
-                        $this->lineas[$this->ano_fiscal + $contador . '_' . $periodo] = array(
-                            'ano' => $this->ano_fiscal + $contador,
-                            'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
-                            'valor' => round(($amortizable / $this->datos['periodos']) / 12, 2),
-                            'periodo' => $periodo
-                        );
-                        $total = $total + round(($amortizable / $this->datos['periodos']) / 12, 2);
-                    }
-
-                    $periodo++;
-                }
-                $contador++;
-            }
-
-            if ($dias != 0) {
-                $periodo = 1;
-                while ($periodo < $mes_fiscal) {
-
-                    $fecha = date('d-m-Y', strtotime($fecha . '+ 1 month'));
-
-                    $this->lineas[$this->ano_fiscal + $contador . '_' . $periodo] = array(
-                        'ano' => $this->ano_fiscal + $contador,
-                        'fecha' => date('d-m-Y', strtotime($fecha . '- 1 day')),
-                        'valor' => round(($amortizable / $this->datos['periodos']) / 12, 2),
-                        'periodo' => $periodo
-                    );
-                    $total = $total + round(($amortizable / $this->datos['periodos']) / 12, 2);
-                    $periodo++;
-                }
-                
-                $fecha = date('d-m-Y', strtotime($fecha . '+ 1 month'));
-                $valor = $amortizable / $this->datos['periodos'] / 12 - $valor;
-                $this->lineas[$this->ano_fiscal + $contador . '_' . $mes_fiscal] = array(
-                    'ano' => $this->ano_fiscal + $contador,
-                    'fecha' => $this->fecha_fin ,
-                    'valor' => round($amortizable - $total,2),
-                    'periodo' => $mes_fiscal
-                );
-            }
+            $fecha = date('d-m-Y', strtotime($fecha . '+' . $meses . ' month'));
+            $valor = $amortizable / $this->datos['periodos'] / $periodos_ano - $valor;
+            $this->lineas[$this->ano_fiscal + $contador . '_' . $this->periodo_inicial] = array(
+                'ano' => $this->ano_fiscal + $contador,
+                'fecha' => $this->fecha_fin,
+                'valor' => round($amortizable - $total, 2),
+                'periodo' => $this->periodo_inicial
+            );
         }
     }
 
@@ -423,5 +341,30 @@ class nueva_amortizacion extends fs_controller
         $dias = $dia1->diff($dia2);
         $dias = $dias->format('%a');
         return $dias;
+    }
+    
+    public function url() {
+            return parent::url();
+    }
+
+    private function buscar_subcuenta() {
+        /// desactivamos la plantilla HTML
+        $this->template = FALSE;
+
+        $subcuenta = new subcuenta();
+        $eje0 = new ejercicio();
+        $ejercicio = $eje0->get_by_fecha($this->today());
+        $json = array();
+        foreach ($subcuenta->search_by_ejercicio($ejercicio->codejercicio, $_REQUEST['buscar_subcuenta']) as $subc) {
+            $json[] = array(
+                'value' => $subc->codsubcuenta,
+                'data' => $subc->descripcion,
+                'saldo' => $subc->saldo,
+                'link' => $subc->url()
+            );
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(array('query' => $_REQUEST['buscar_subcuenta'], 'suggestions' => $json));
     }
 }

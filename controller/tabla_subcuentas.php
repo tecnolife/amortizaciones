@@ -29,7 +29,7 @@ class tabla_subcuentas extends fs_controller
      */
     public function __construct()
     {
-        parent::__construct(__CLASS__, 'tabla de subcuentas', 'compras', false, false);
+        parent::__construct(__CLASS__, 'tabla de subcuentas', 'contabilidad', false, false);
     }
 
     /**

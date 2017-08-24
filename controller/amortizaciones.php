@@ -69,7 +69,7 @@ class amortizaciones extends fs_controller
      */
     public function __construct()
     {
-        parent::__construct(__CLASS__, 'amortizaciones', 'compras');
+        parent::__construct(__CLASS__, 'amortizaciones', 'contabilidad');
     }
 
     /**
@@ -91,7 +91,7 @@ class amortizaciones extends fs_controller
             $this->eliminar_amortizacion();
         } elseif (filter_input(INPUT_GET, 'cancel') !== null || filter_input(INPUT_POST, 'cancel') !== null) {
             $this->amortizacion->cancel(filter_input(INPUT_GET, 'cancel'));
-        } elseif (filter_input(INPUT_GET, 'restart') !== null || filter_input(INPUT_POST, 'cancel') !== null) {
+        } elseif (filter_input(INPUT_GET, 'restart') !== null) {
             $this->amortizacion->restart(filter_input(INPUT_GET, 'restart'));
         } elseif (filter_input(INPUT_GET, 'endlife') !== null) {
             $this->finalizar_vida_util(filter_input(INPUT_POST, 'id_amortizacion'), filter_input(INPUT_POST, 'fecha'));
@@ -109,6 +109,7 @@ class amortizaciones extends fs_controller
         }
         
         $this->listado = $this->amortizacion->all($this->offset, $this->limite);
+        $this->linea_amortizacion = new linea_amortizacion();
         $this->listado_lineas = $this->linea_amortizacion->this_year();
 
         $this->listar_pendientes();
@@ -119,24 +120,33 @@ class amortizaciones extends fs_controller
      */
     private function anadir_amortizacion()
     {
-        $this->amortizacion->cod_subcuenta_beneficios = filter_input(INPUT_POST, 'cod_subcuenta_beneficios', FILTER_VALIDATE_INT);
-        $this->amortizacion->cod_subcuenta_cierre = filter_input(INPUT_POST, 'cod_subcuenta_cierre', FILTER_VALIDATE_INT);
-        $this->amortizacion->cod_subcuenta_debe = filter_input(INPUT_POST, 'cod_subcuenta_debe', FILTER_VALIDATE_INT);
-        $this->amortizacion->cod_subcuenta_haber = filter_input(INPUT_POST, 'cod_subcuenta_haber', FILTER_VALIDATE_INT);
-        $this->amortizacion->cod_subcuenta_perdidas = filter_input(INPUT_POST, 'cod_subcuenta_perdidas', FILTER_VALIDATE_INT);
-        $this->amortizacion->contabilizacion = filter_input(INPUT_POST, 'contabilizacion');
-        $this->amortizacion->descripcion = filter_input(INPUT_POST, 'descripcion');
-        $this->amortizacion->fecha_fin = filter_input(INPUT_POST, 'fecha_fin');
-        $this->amortizacion->fecha_inicio = filter_input(INPUT_POST, 'fecha_inicio');
-        $this->amortizacion->id_factura = filter_input(INPUT_POST, 'id_factura', FILTER_VALIDATE_INT);
-        $this->amortizacion->periodos = filter_input(INPUT_POST, 'periodos', FILTER_VALIDATE_INT);
-        $this->amortizacion->residual = filter_input(INPUT_POST, 'residual', FILTER_VALIDATE_FLOAT);
-        $this->amortizacion->tipo = filter_input(INPUT_POST, 'tipo');
-        $this->amortizacion->valor = filter_input(INPUT_POST, 'valor', FILTER_VALIDATE_FLOAT);
-        $this->amortizacion->coddivisa = filter_input(INPUT_POST, 'cod_divisa');
-        $this->amortizacion->codserie = filter_input(INPUT_POST, 'cod_serie');
-        $this->amortizacion->documento = filter_input(INPUT_POST, 'documento');
-                
+        if (filter_input(INPUT_GET, 'editar') != null) {
+            $amortizacion = new amortizacion();
+            $this->amortizacion = $amortizacion->get_by_amortizacion(filter_input(INPUT_POST, 'id_amortizacion', FILTER_VALIDATE_INT));
+            $this->amortizacion->descripcion = filter_input(INPUT_POST, 'descripcion');
+            $this->amortizacion->valor = filter_input(INPUT_POST, 'valor', FILTER_VALIDATE_FLOAT);
+            $this->amortizacion->periodos = filter_input(INPUT_POST, 'periodos', FILTER_VALIDATE_INT);
+            $this->amortizacion->fecha_fin = filter_input(INPUT_POST, 'fecha_fin');
+        } else {
+            $this->amortizacion->cod_subcuenta_beneficios = filter_input(INPUT_POST, 'cod_subcuenta_beneficios', FILTER_VALIDATE_INT);
+            $this->amortizacion->cod_subcuenta_cierre = filter_input(INPUT_POST, 'cod_subcuenta_cierre', FILTER_VALIDATE_INT);
+            $this->amortizacion->cod_subcuenta_debe = filter_input(INPUT_POST, 'cod_subcuenta_debe', FILTER_VALIDATE_INT);
+            $this->amortizacion->cod_subcuenta_haber = filter_input(INPUT_POST, 'cod_subcuenta_haber', FILTER_VALIDATE_INT);
+            $this->amortizacion->cod_subcuenta_perdidas = filter_input(INPUT_POST, 'cod_subcuenta_perdidas', FILTER_VALIDATE_INT);
+            $this->amortizacion->contabilizacion = filter_input(INPUT_POST, 'contabilizacion');
+            $this->amortizacion->descripcion = filter_input(INPUT_POST, 'descripcion');
+            $this->amortizacion->fecha_fin = filter_input(INPUT_POST, 'fecha_fin');
+            $this->amortizacion->fecha_inicio = filter_input(INPUT_POST, 'fecha_inicio');
+            $this->amortizacion->id_factura = filter_input(INPUT_POST, 'id_factura', FILTER_VALIDATE_INT);
+            $this->amortizacion->periodos = filter_input(INPUT_POST, 'periodos', FILTER_VALIDATE_INT);
+            $this->amortizacion->residual = filter_input(INPUT_POST, 'residual', FILTER_VALIDATE_FLOAT);
+            $this->amortizacion->tipo = filter_input(INPUT_POST, 'tipo');
+            $this->amortizacion->valor = filter_input(INPUT_POST, 'valor', FILTER_VALIDATE_FLOAT);
+            $this->amortizacion->coddivisa = filter_input(INPUT_POST, 'cod_divisa');
+            $this->amortizacion->codserie = filter_input(INPUT_POST, 'cod_serie');
+            $this->amortizacion->documento = filter_input(INPUT_POST, 'documento');
+        }
+
         $inicio_ejercicio = filter_input(INPUT_POST, 'inicio_ejercicio');
         $inicio_amortizacion = filter_input(INPUT_POST, 'fecha_inicio');
         
@@ -151,11 +161,7 @@ class amortizaciones extends fs_controller
         } else {
             $this->amortizacion->periodo_final = filter_input(INPUT_POST, 'periodo_inicial');
         }
-                
-        if (filter_input(INPUT_GET, 'editar') != null || filter_input(INPUT_POST, 'editar') != null) {
-            $this->amortizacion->id_amortizacion = filter_input(INPUT_POST, 'id_amortizacion', FILTER_VALIDATE_INT);
-        }
-
+        
         if ($this->amortizacion->save()) {
             $this->anadir_lineas();
             if (filter_input(INPUT_GET, 'editar') != null) {
@@ -174,15 +180,18 @@ class amortizaciones extends fs_controller
      */
     private function anadir_lineas()
     {
+        $linea_model = new linea_amortizacion();
         $this->listado_lineas = array();
         $contador = 0;
         $periodo_inicial = filter_input(INPUT_POST, 'periodo_inicial', FILTER_VALIDATE_INT);
         $periodo = filter_input(INPUT_POST, 'periodo_inicial', FILTER_VALIDATE_INT);
+        $total_periodos = filter_input(INPUT_POST, 'periodos', FILTER_VALIDATE_INT);
         $ano = (int)(Date('Y', strtotime(filter_input(INPUT_POST, 'fecha_inicio'))));
         $ano_fiscal = (filter_input(INPUT_POST, 'ano_fiscal'));
         $ano_fiscal_final = filter_input(INPUT_POST, 'periodos') + $ano_fiscal;
         $ano = (filter_input(INPUT_POST, 'ano_fiscal'));
-                
+        $eliminar = false;    
+        
         $inicio_ejercicio = (Date('m-d', strtotime(filter_input(INPUT_POST, 'inicio_ejercicio'))));
         $inicio_amortizacion = (Date('m-d', strtotime(filter_input(INPUT_POST, 'fecha_inicio'))));
         
@@ -198,7 +207,15 @@ class amortizaciones extends fs_controller
             $periodos_ano = 12;
         }
 
-        while ($contador <= filter_input(INPUT_POST, 'periodos')) {
+        
+        if (filter_input(INPUT_POST, 'disminuir_periodos', FILTER_VALIDATE_FLOAT) != null && filter_input(INPUT_POST, 'disminuir_periodos', FILTER_VALIDATE_FLOAT) < 0) {
+            $disminuyendo = true;
+            $total_periodos -= filter_input(INPUT_POST, 'disminuir_periodos', FILTER_VALIDATE_INT);
+            $ano_fiscal_final -= filter_input(INPUT_POST, 'disminuir_periodos', FILTER_VALIDATE_INT);
+        }
+        
+                
+        while ($contador <= $total_periodos) {
             
             if ($ano_fiscal_final == $ano) {
                 $periodo = 1;
@@ -206,57 +223,46 @@ class amortizaciones extends fs_controller
             } elseif ($ano_fiscal != $ano) {
                 $periodo = 1;
             } 
-
+            
+            $this->linea_amortizacion->id_amortizacion = $this->amortizacion->id_amortizacion;
             while ($periodo <= $periodos_ano) {
-                if (filter_input(INPUT_GET, 'editar') != null) {
-                    $this->listado_lineas[filter_input(INPUT_POST,'ano_' . $ano . '_' . $periodo . '') . '_' . $periodo] = array(
-                        'ano' => filter_input(INPUT_POST, 'ano_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT),
-                        'cantidad' => round(filter_input(INPUT_POST, 'cantidad_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_FLOAT), 2),
-                        'contabilizada' => filter_input(INPUT_POST,'contabilizada_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT),
-                        'fecha' => filter_input(INPUT_POST,'fecha_' . $ano . '_' . $periodo . ''),
-                        'id_amortizacion' => filter_input(INPUT_POST,'id_amortizacion_' . $ano . '_' . $periodo . '',FILTER_VALIDATE_INT),
-                        'id_linea' => filter_input(INPUT_POST,'id_linea_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT),
-                        'periodo' => filter_input(INPUT_POST,'periodo_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT)
-                    );
-                } else {  //Nueva amortizacion
-                    $this->listado_lineas[(filter_input(INPUT_POST,'ano_' . $ano . '_' . $periodo . '')) . '_' . $periodo] = array(
-                        'ano' => filter_input(INPUT_POST,'ano_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT),
-                        'cantidad' => round(filter_input(INPUT_POST,'cantidad_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_FLOAT), 2),
-                        'fecha' => filter_input(INPUT_POST,'fecha_' . $ano . '_' . $periodo . ''),
-                        'periodo' => filter_input(INPUT_POST,'periodo_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT)
-                    );
+                if ($linea_model->get_by_id_linea(filter_input(INPUT_POST,'id_linea_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT))) {
+                    $this->linea_amortizacion = $linea_model->get_by_id_linea(filter_input(INPUT_POST, 'id_linea_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT));
+                    $this->linea_amortizacion->fecha = filter_input(INPUT_POST, 'fecha_' . $ano . '_' . $periodo . '');
+                    $this->linea_amortizacion->cantidad = round(filter_input(INPUT_POST, 'cantidad_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_FLOAT), 2);
+                } elseif (isset ($disminuyendo)){
+                    $eliminar = true;
+                    $this->linea_amortizacion = $linea_model->get_by_id_amor_ano_periodo($this->amortizacion->id_amortizacion, $ano, $periodo);
+                } else {
+                    $this->linea_amortizacion->ano = filter_input(INPUT_POST, 'ano_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT);
+                    $this->linea_amortizacion->cantidad = round(filter_input(INPUT_POST, 'cantidad_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_FLOAT), 2);
+                    $this->linea_amortizacion->fecha = filter_input(INPUT_POST, 'fecha_' . $ano . '_' . $periodo . '');
+                    $this->linea_amortizacion->periodo = filter_input(INPUT_POST, 'periodo_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT);
+                }
+                
+                if (filter_input(INPUT_POST, 'fecha_cambio') != null) {
+                    if (strtotime($this->linea_amortizacion->fecha) >= strtotime(filter_input(INPUT_POST, 'fecha_cambio'))) {
+                        $this->eliminar_asiento($this->linea_amortizacion->id_linea);
+                    }
+                }
+
+                if ($eliminar) {
+                    $eliminar = false;
+                    $this->linea_amortizacion->delete();
+                    $this->linea_amortizacion->id_linea = null;
+                } elseif ($this->linea_amortizacion->save()) {
+                    $this->linea_amortizacion->id_linea = null;
+                } else {
+                    if (filter_input(INPUT_GET, 'nueva') != null) {
+                        $this->amortizacion->delete();
+                        $this->linea_amortizacion->delete_by_amor();
+                    }
+                    $this->new_error_msg("Error al crear la línea de amortización");
                 }
                 $periodo++;
             }
             $contador++;
             $ano++;
-        }
-
-        $this->linea_amortizacion->id_amortizacion = $this->amortizacion->id_amortizacion;
-
-        foreach ($this->listado_lineas as $key => $value) {
-                        
-            $this->linea_amortizacion->ano = $value['ano'];
-            $this->linea_amortizacion->cantidad = $value['cantidad'];
-            $this->linea_amortizacion->fecha = $value['fecha'];
-            $this->linea_amortizacion->periodo = $value['periodo'];
-            
-            if (filter_input(INPUT_GET, 'editar') != null) {
-                $this->linea_amortizacion->contabilizada = $value['contabilizada'];
-                $this->linea_amortizacion->id_amortizacion = $value['id_amortizacion'];
-                $this->linea_amortizacion->id_linea = $value['id_linea'];
-            }
-
-            //ERROR VISUAL, porque se muestra una línea de mensaje por cada línea que se crea
-            if ($this->linea_amortizacion->save()) {
-                $this->linea_amortizacion->id_linea = null;
-            } else {
-                if (filter_input(INPUT_GET, 'nueva') != null) {
-                    $this->amortizacion->delete();
-                    $this->linea_amortizacion->delete();
-                }
-                $this->new_error_msg("Error al crear la línea de amortización");
-            }
         }
     }
 
@@ -271,7 +277,7 @@ class amortizaciones extends fs_controller
         if ($this->amortizacion->delete()) {
             $this->new_message("La amortización se ha eliminado con exito");
 
-            if ($this->linea_amortizacion->delete()) {
+            if ($this->linea_amortizacion->delete_by_amor()) {
             } else {
                 $this->new_error_msg("Error al eliminar la línea de la amortización");
             }
@@ -340,21 +346,24 @@ class amortizaciones extends fs_controller
     {
         $linea = $this->linea_amortizacion->get_by_id_linea($id_linea);
         $amortizacion = $this->amortizacion->get_by_amortizacion($linea->id_amortizacion);
+        $ejercicio_model = new ejercicio();
         
         if ($amortizacion->fin_vida_util == 1){
             $this->new_error_msg('Este amortizado ya ha cumplido su vida útil y se crearon los asientos correspondientes');
-        }
-        elseif ($amortizacion->cod_subcuenta_debe == 0 || $amortizacion->cod_subcuenta_haber == 0) {
+        } elseif (!$ejercicio_model->get_by_fecha($linea->fecha, TRUE, FALSE)) {
+            $this->new_error_msg('El ejercicio no esta creado, crealo y añade el plan contable para poder realizar los apuntes correctamente');
+        } elseif ($amortizacion->cod_subcuenta_debe == 0 || $amortizacion->cod_subcuenta_haber == 0) {
             $this->new_error_msg('El campo SUBCUENTA DEBE o SUBCUENTA HABER no tienen puesta la subcuenta para crear los asientos contables');           
         } else {
-            $ejercicio_model = new ejercicio();
             $ejercicio = $ejercicio_model->get_by_fecha($linea->fecha);
 
             //completar amortizacion
-            $ejercicio_final = $ejercicio_model->get_by_fecha($amortizacion->fecha_fin);
-            $ano_final = (int) (Date('Y', strtotime($ejercicio_final->fechainicio)));
-            if ($ano_final == $linea->ano && $linea->periodo == $amortizacion->periodo_final) {
-                $this->amortizacion->complete($amortizacion->id_amortizacion);
+            if ($ejercicio_model->get_by_fecha($amortizacion->fecha_fin, TRUE, FALSE)) {
+                $ejercicio_final = $ejercicio_model->get_by_fecha($amortizacion->fecha_fin);
+                $ano_final = (int) (Date('Y', strtotime($ejercicio_final->fechainicio)));
+                if ($ano_final == $linea->ano && $linea->periodo == $amortizacion->periodo_final) {
+                    $this->amortizacion->complete($amortizacion->id_amortizacion);
+                }
             }
             //Fin de completar amortizacion
 
@@ -377,60 +386,57 @@ class amortizaciones extends fs_controller
                     $this->new_error_msg('Error al contabilizar la amortización');
                 }
 
-                //DEBE
+                
                 $partidadebe = new partida();
                 $subcuenta = new subcuenta();
                 $subcuenta_debe = $subcuenta->get_by_codigo(
                         $amortizacion->cod_subcuenta_debe, $ejercicio->codejercicio
                 );
-                
-                if ($subcuenta_debe->idsubcuenta == null) {
-                    $this->new_error_msg('Seguramente no esteń importados los datos del plan contable en el ejercicio en el que intentas amortizar');
-                }      
-
-                $partidadebe->debe = $linea->cantidad;
-                $partidadebe->coddivisa = $amortizacion->coddivisa;
-                $partidadebe->codserie = $amortizacion->codserie;
-                $partidadebe->codsubcuenta = $amortizacion->cod_subcuenta_debe;
-                $partidadebe->concepto = $amortizacion->descripcion;
-                $partidadebe->idasiento = $idasiento;
-                $partidadebe->idsubcuenta = $subcuenta_debe->idsubcuenta;
-
-                if ($partidadebe->save()) {
-                    
-                } else {
-                    $this->new_error_msg('Error al contabilizar la amortización');
-                    $asiento->delete();
-                    $this->linea_amortizacion->discount($linea->id_linea);
-                }
-
-                //HABER
                 $partidahaber = new partida();
                 $subcuenta_haber = $subcuenta->get_by_codigo(
                         $amortizacion->cod_subcuenta_haber, $ejercicio->codejercicio
                 );
                 
-                if ($subcuenta_haber->idsubcuenta == null) {
+                if (!$subcuenta_debe || !$subcuenta_haber) {
                     $this->new_error_msg('Seguramente no esteń importados los datos del plan contable en el ejercicio en el que intentas amortizar');
-                }      
-
-                $partidahaber->haber = $linea->cantidad;
-                $partidahaber->coddivisa = $amortizacion->coddivisa;
-                $partidahaber->codserie = $amortizacion->codserie;
-                $partidahaber->codsubcuenta = $amortizacion->cod_subcuenta_haber;
-                $partidahaber->concepto = $amortizacion->descripcion;
-                $partidahaber->idasiento = $idasiento;
-                $partidahaber->idsubcuenta = $subcuenta_haber->idsubcuenta;
-
-                if ($partidahaber->save()) {
-                    $this->new_message('Línea contabilizada, asiento creado correctamente');
-                    $this->linea_amortizacion->count($linea->id_linea, $idasiento);
-                    $asiento->idasiento = null;
-                    $partidadebe->idpartida = null;
-                    $partidahaber->idpartida = null;
-                } else {
-                    $this->new_error_msg('Error al contabilizar la amortización');
                     $asiento->delete();
+                } else {
+                    //DEBE
+                    $partidadebe->debe = $linea->cantidad;
+                    $partidadebe->coddivisa = $amortizacion->coddivisa;
+                    $partidadebe->codserie = $amortizacion->codserie;
+                    $partidadebe->codsubcuenta = $amortizacion->cod_subcuenta_debe;
+                    $partidadebe->concepto = $amortizacion->descripcion;
+                    $partidadebe->idasiento = $idasiento;
+                    $partidadebe->idsubcuenta = $subcuenta_debe->idsubcuenta;
+
+                    if ($partidadebe->save()) {
+                        
+                    } else {
+                        $this->new_error_msg('Error al contabilizar la amortización');
+                        $asiento->delete();
+                        $this->linea_amortizacion->discount($linea->id_linea);
+                    }
+
+                    //HABER
+                    $partidahaber->haber = $linea->cantidad;
+                    $partidahaber->coddivisa = $amortizacion->coddivisa;
+                    $partidahaber->codserie = $amortizacion->codserie;
+                    $partidahaber->codsubcuenta = $amortizacion->cod_subcuenta_haber;
+                    $partidahaber->concepto = $amortizacion->descripcion;
+                    $partidahaber->idasiento = $idasiento;
+                    $partidahaber->idsubcuenta = $subcuenta_haber->idsubcuenta;
+
+                    if ($partidahaber->save()) {
+                        $this->new_message('Línea contabilizada, asiento creado correctamente');
+                        $this->linea_amortizacion->count($linea->id_linea, $idasiento);
+                        $asiento->idasiento = null;
+                        $partidadebe->idpartida = null;
+                        $partidahaber->idpartida = null;
+                    } else {
+                        $this->new_error_msg('Error al contabilizar la amortización');
+                        $asiento->delete();
+                    }
                 }
             } else {
                 $this->new_error_msg('La línea ya está contabilizada');
@@ -445,24 +451,17 @@ class amortizaciones extends fs_controller
     {
         $linea = $this->linea_amortizacion->get_by_id_linea($id_linea);
         $amortizacion = $this->amortizacion->get_by_amortizacion($linea->id_amortizacion);
-
+        $ejercicio_model = new ejercicio();
+        
         if ($amortizacion->fin_vida_util == 1){
             $this->new_error_msg('Este amortizado ya ha cumplido su vida útil y se crearon los asientos correspondientes');
-        }
-        elseif ($amortizacion->cod_subcuenta_debe == 0 || $amortizacion->cod_subcuenta_haber == 0) {
+        } elseif (!$ejercicio_model->get_by_fecha($fecha, TRUE, FALSE)) {
+            $this->new_error_msg('El ejercicio no esta creado, crealo y añade el plan contable para poder realizar los apuntes correctamente');
+        } elseif ($amortizacion->cod_subcuenta_debe == 0 || $amortizacion->cod_subcuenta_haber == 0) {
             $this->new_error_msg('El campo SUBCUENTA DEBE o SUBCUENTA HABER no tienen puesta la subcuenta para crear los asientos contables');
         } else {
 
-            $ejercicio_model = new ejercicio();
             $ejercicio = $ejercicio_model->get_by_fecha($fecha);
-
-            //completar amortizacion
-            $ejercicio_final = $ejercicio_model->get_by_fecha($amortizacion->fecha_fin);
-            $ano_final = (int) (Date('Y', strtotime($ejercicio_final->fechainicio)));
-            if ($ano_final == $linea->ano && $linea->periodo == $amortizacion->periodo_final) {
-                $this->amortizacion->complete($amortizacion->id_amortizacion);
-            }
-            //Fin de completar amortizacion
 
             if ($linea->contabilizada != 1) {
 
@@ -481,57 +480,58 @@ class amortizaciones extends fs_controller
                     $idasiento = $asiento->idasiento;
                 } else {
                     $this->new_error_msg('Error al contabilizar la amortización');
+                    return FALSE;
                 }
 
-                //DEBE
+                
                 $partidadebe = new partida();
                 $subcuenta = new subcuenta();
                 $subcuenta_debe = $subcuenta->get_by_codigo(
                         $amortizacion->cod_subcuenta_debe, $ejercicio->codejercicio
                 );
-
-                if ($subcuenta_debe->idsubcuenta == null) {
-                    $this->new_error_msg('Seguramente no esteń importados los datos del plan contable en el ejercicio en el que intentas amortizar');
-                }
-
-                $partidadebe->debe = $cantidad;
-                $partidadebe->coddivisa = $amortizacion->coddivisa;
-                $partidadebe->codserie = $amortizacion->codserie;
-                $partidadebe->codsubcuenta = $amortizacion->cod_subcuenta_debe;
-                $partidadebe->concepto = $amortizacion->descripcion;
-                $partidadebe->idasiento = $idasiento;
-                $partidadebe->idsubcuenta = $subcuenta_debe->idsubcuenta;
-
-                if ($partidadebe->save()) {
-                } else {
-                    $this->new_error_msg('Error al contabilizar la amortización');
-                    $asiento->delete();
-                }
-
-                //HABER
                 $partidahaber = new partida();
                 $subcuenta_haber = $subcuenta->get_by_codigo(
                         $amortizacion->cod_subcuenta_haber, $ejercicio->codejercicio
                 );
 
-                if ($subcuenta_haber->idsubcuenta == null) {
+                if (!$subcuenta_debe || !$subcuenta_haber) {
                     $this->new_error_msg('Seguramente no esteń importados los datos del plan contable en el ejercicio en el que intentas amortizar');
-                }
-
-                $partidahaber->haber = $cantidad;
-                $partidahaber->coddivisa = $amortizacion->coddivisa;
-                $partidahaber->codserie = $amortizacion->codserie;
-                $partidahaber->codsubcuenta = $amortizacion->cod_subcuenta_haber;
-                $partidahaber->concepto = $amortizacion->descripcion;
-                $partidahaber->idasiento = $idasiento;
-                $partidahaber->idsubcuenta = $subcuenta_haber->idsubcuenta;
-
-                if ($partidahaber->save()) {
-                    $this->new_message('Línea contabilizada, asiento creado correctamente');
-                    $this->linea_amortizacion->count($linea->id_linea, $idasiento);
-                } else {
-                    $this->new_error_msg('Error al crear la línea de partida');
                     $asiento->delete();
+                    return FALSE;
+                } else {
+                    $partidadebe->debe = $cantidad;
+                    $partidadebe->coddivisa = $amortizacion->coddivisa;
+                    $partidadebe->codserie = $amortizacion->codserie;
+                    $partidadebe->codsubcuenta = $amortizacion->cod_subcuenta_debe;
+                    $partidadebe->concepto = $amortizacion->descripcion;
+                    $partidadebe->idasiento = $idasiento;
+                    $partidadebe->idsubcuenta = $subcuenta_debe->idsubcuenta;
+
+                    if ($partidadebe->save()) {
+                        
+                    } else {
+                        $this->new_error_msg('Error al contabilizar la amortización');
+                        $asiento->delete();
+                        return FALSE;
+                    }
+                    //HABER
+                    $partidahaber->haber = $cantidad;
+                    $partidahaber->coddivisa = $amortizacion->coddivisa;
+                    $partidahaber->codserie = $amortizacion->codserie;
+                    $partidahaber->codsubcuenta = $amortizacion->cod_subcuenta_haber;
+                    $partidahaber->concepto = $amortizacion->descripcion;
+                    $partidahaber->idasiento = $idasiento;
+                    $partidahaber->idsubcuenta = $subcuenta_haber->idsubcuenta;
+
+                    if ($partidahaber->save()) {
+                        $this->new_message('Línea contabilizada, asiento creado correctamente');
+                        $this->linea_amortizacion->count($linea->id_linea, $idasiento);
+                        return TRUE;
+                    } else {
+                        $this->new_error_msg('Error al crear la línea de partida');
+                        $asiento->delete();
+                        return FALSE;
+                    }
                 }
             } else {
                 $this->new_error_msg('La línea ya está contabilizada');
@@ -548,13 +548,17 @@ class amortizaciones extends fs_controller
         //Crea el asiento
         $amortizacion = $this->amortizacion->get_by_amortizacion($id);
         $ejercicio_model = new ejercicio();
-        $ejercicio = $ejercicio_model->get_by_fecha($fecha);
 
         if ($amortizacion->fin_vida_util == 1) {
             $this->new_error_msg('Este amortizado ya ha cumplido su vida útil y se crearon los asientos correspondientes');
+        } elseif (!$ejercicio_model->get_by_fecha($fecha, FALSE, FALSE)) {
+            $this->new_error_msg('El ejercicio no esta creado, crealo y añade el plan contable para poder realizar los apuntes correctamente');
+        } elseif (!$ejercicio_model->get_by_fecha($fecha, TRUE, FALSE)) {
+            $this->new_error_msg('El ejercicio perteneciente a la fecha de finalización está CERRADO');
         } elseif ($amortizacion->cod_subcuenta_cierre == 0 || $amortizacion->cod_subcuenta_haber == 0 || $amortizacion->cod_subcuenta_perdidas == 0) {
-            $this->new_error_msg('El campo SUBCUENTA DEBE o SUBCUENTA HABER no tienen puesta la subcuenta para crear los asientos contables');
+            $this->new_error_msg('El campo SUBCUENTA CIERRE, SUBCUENTA HABER o SUBCUENTA PERDIDAS no tienen puesta la subcuenta para crear los asientos contables');
         } else {
+            $ejercicio = $ejercicio_model->get_by_fecha($fecha);
 
             $sin_amortizar = 0;
             $amortizado = 0;
@@ -587,10 +591,9 @@ class amortizaciones extends fs_controller
             }
             
             $dias_periodo = $this->diferencia_dias($fecha_inicio, $linea->fecha) + 1;
-            $dias_amortizado = $this->diferencia_dias($fecha_inicio, $fecha) + 1;
+                $dias_amortizado = $this->diferencia_dias($fecha_inicio, $fecha) + 1;
 
-            $valor = round($linea->cantidad / $dias_periodo * $dias_amortizado, 2);
-                $this->contabilizar_fin_vida($linea->id_linea, $valor, $fecha);
+                $valor = round($linea->cantidad / $dias_periodo * $dias_amortizado, 2);
 
                 $amortizado = round($amortizado + $valor, 2);
 
@@ -613,84 +616,79 @@ class amortizaciones extends fs_controller
 
                 $subcuenta = new subcuenta();
 
-                //DEBE AMORTIZADO
                 $partidadebe = new partida();
                 $subcuenta_debe = $subcuenta->get_by_codigo(
                         $amortizacion->cod_subcuenta_haber, $ejercicio->codejercicio
                 );
-
-                if ($subcuenta_debe->idsubcuenta == null) {
-                    $this->new_error_msg('Seguramente no esteń importados los datos del plan contable en el ejercicio en el que intentas amortizar');
-                }
-
-                $partidadebe->debe = $amortizado;
-                $partidadebe->coddivisa = $amortizacion->coddivisa;
-                $partidadebe->codserie = $amortizacion->codserie;
-                $partidadebe->codsubcuenta = $amortizacion->cod_subcuenta_haber;
-                $partidadebe->concepto = $amortizacion->descripcion;
-                $partidadebe->idasiento = $idasiento;
-                $partidadebe->idsubcuenta = $subcuenta_debe->idsubcuenta;
-
-                if ($partidadebe->save()) {
-                    
-                } else {
-                    $this->new_error_msg('Error al crear la línea de partida');
-                    $asiento->delete();
-                }
-
-                $partidadebe->idpartida = null;
-                //DEBE PERDIDAS
-                $subcuenta_debe = $subcuenta->get_by_codigo(
+                $partidadebe_perdidas = new partida();
+                $subcuenta_debe_perdidas = $subcuenta->get_by_codigo(
                         $amortizacion->cod_subcuenta_perdidas, $ejercicio->codejercicio
                 );
-
-                if ($subcuenta_debe->idsubcuenta == null) {
-                    $this->new_error_msg('Seguramente no esteń importados los datos del plan contable en el ejercicio en el que intentas amortizar');
-                }
-
-                $partidadebe->debe = $amortizacion->valor - $amortizado;
-                $partidadebe->coddivisa = $amortizacion->coddivisa;
-                $partidadebe->codserie = $amortizacion->codserie;
-                $partidadebe->codsubcuenta = $amortizacion->cod_subcuenta_perdidas;
-                $partidadebe->concepto = $amortizacion->descripcion;
-                $partidadebe->idasiento = $idasiento;
-                $partidadebe->idsubcuenta = $subcuenta_debe->idsubcuenta;
-
-                if ($partidadebe->save()) {
-                    
-                } else {
-                    $this->new_error_msg('Error al crear la línea de partida');
-                    $asiento->delete();
-                    $this->linea_amortizacion->discount($linea->id_linea);
-                }
-
-
-                //HABER
                 $partidahaber = new partida();
                 $subcuenta_haber = $subcuenta->get_by_codigo(
                         $amortizacion->cod_subcuenta_cierre, $ejercicio->codejercicio
                 );
 
-                if ($subcuenta_haber->idsubcuenta == null) {
+                if (!$subcuenta_debe || !$subcuenta_haber || !$subcuenta_debe_perdidas) {
                     $this->new_error_msg('Seguramente no esteń importados los datos del plan contable en el ejercicio en el que intentas amortizar');
-                }
-
-                $partidahaber->haber = $amortizacion->valor;
-                $partidahaber->coddivisa = $amortizacion->coddivisa;
-                $partidahaber->codserie = $amortizacion->codserie;
-                $partidahaber->codsubcuenta = $amortizacion->cod_subcuenta_cierre;
-                $partidahaber->concepto = $amortizacion->descripcion;
-                $partidahaber->idasiento = $idasiento;
-                $partidahaber->idsubcuenta = $subcuenta_haber->idsubcuenta;
-
-                if ($partidahaber->save()) {
-                    $this->amortizacion->end_life($id);
-                    $this->amortizacion->date_end_life($id, $fecha);
-                    $this->amortizacion->end_life_count($id, $idasiento);
-                    $this->new_message('Finalizada la vida útil del amortizado');
-                } else {
-                    $this->new_error_msg('Error al crear la línea de partida');
                     $asiento->delete();
+                } else {
+
+                    //DEBE AMORTIZADO
+                    $partidadebe->debe = $amortizado;
+                    $partidadebe->coddivisa = $amortizacion->coddivisa;
+                    $partidadebe->codserie = $amortizacion->codserie;
+                    $partidadebe->codsubcuenta = $amortizacion->cod_subcuenta_haber;
+                    $partidadebe->concepto = $amortizacion->descripcion;
+                    $partidadebe->idasiento = $idasiento;
+                    $partidadebe->idsubcuenta = $subcuenta_debe->idsubcuenta;
+
+                    if ($partidadebe->save()) {
+                        
+                    } else {
+                        $this->new_error_msg('Error al crear la línea de partida');
+                        $asiento->delete();
+                    }
+
+                    //DEBE PERDIDAS
+                    $partidadebe_perdidas->debe = $amortizacion->valor - $amortizado;
+                    $partidadebe_perdidas->coddivisa = $amortizacion->coddivisa;
+                    $partidadebe_perdidas->codserie = $amortizacion->codserie;
+                    $partidadebe_perdidas->codsubcuenta = $amortizacion->cod_subcuenta_perdidas;
+                    $partidadebe_perdidas->concepto = $amortizacion->descripcion;
+                    $partidadebe_perdidas->idasiento = $idasiento;
+                    $partidadebe_perdidas->idsubcuenta = $subcuenta_debe->idsubcuenta;
+
+                    if ($partidadebe_perdidas->save()) {
+                        
+                    } else {
+                        $this->new_error_msg('Error al crear la línea de partida');
+                        $asiento->delete();
+                        $this->linea_amortizacion->discount($linea->id_linea);
+                    }
+
+                    //HABER
+                    $partidahaber->haber = $amortizacion->valor;
+                    $partidahaber->coddivisa = $amortizacion->coddivisa;
+                    $partidahaber->codserie = $amortizacion->codserie;
+                    $partidahaber->codsubcuenta = $amortizacion->cod_subcuenta_cierre;
+                    $partidahaber->concepto = $amortizacion->descripcion;
+                    $partidahaber->idasiento = $idasiento;
+                    $partidahaber->idsubcuenta = $subcuenta_haber->idsubcuenta;
+
+                    if ($partidahaber->save()) {
+                        if ($this->contabilizar_fin_vida($linea->id_linea, $valor, $fecha)) {
+                            $this->amortizacion->end_life($id);
+                            $this->amortizacion->date_end_life($id, $fecha);
+                            $this->amortizacion->end_life_count($id, $idasiento);
+                            $this->new_message('Finalizada la vida útil del amortizado');
+                        } else {
+                            $asiento->delete();
+                        }
+                    } else {
+                        $this->new_error_msg('Error al crear la línea de partida');
+                        $asiento->delete();
+                    }
                 }
             } else {
                 //Genera la fila en la tabla co_asientos
@@ -711,59 +709,54 @@ class amortizaciones extends fs_controller
                 }
 
                 $subcuenta = new subcuenta();
-
-                //DEBE
                 $partidadebe = new partida();
                 $subcuenta_debe = $subcuenta->get_by_codigo(
                         $amortizacion->cod_subcuenta_haber, $ejercicio->codejercicio
                 );
-
-                if ($subcuenta_debe->idsubcuenta == null) {
-                    $this->new_error_msg('Seguramente no esteń importados los datos del plan contable en el ejercicio en el que intentas amortizar');
-                }
-
-                $partidadebe->debe = $amortizacion->valor;
-                $partidadebe->coddivisa = $amortizacion->coddivisa;
-                $partidadebe->codserie = $amortizacion->codserie;
-                $partidadebe->codsubcuenta = $amortizacion->cod_subcuenta_haber;
-                $partidadebe->concepto = $amortizacion->descripcion;
-                $partidadebe->idasiento = $idasiento;
-                $partidadebe->idsubcuenta = $subcuenta_debe->idsubcuenta;
-
-                if ($partidadebe->save()) {
-                } else {
-                    $this->new_error_msg('Error al crear la línea de partida');
-                    $asiento->delete();
-                }
-
-
-                //HABER
                 $partidahaber = new partida();
                 $subcuenta_haber = $subcuenta->get_by_codigo(
                         $amortizacion->cod_subcuenta_cierre, $ejercicio->codejercicio
                 );
 
-                if ($subcuenta_haber->idsubcuenta == null) {
+                if (!$subcuenta_debe || !$subcuenta_haber) {
                     $this->new_error_msg('Seguramente no esteń importados los datos del plan contable en el ejercicio en el que intentas amortizar');
-                }
-
-                $partidahaber->haber = $amortizacion->valor;
-                $partidahaber->coddivisa = $amortizacion->coddivisa;
-                $partidahaber->codserie = $amortizacion->codserie;
-                $partidahaber->codsubcuenta = $amortizacion->cod_subcuenta_cierre;
-                $partidahaber->concepto = $amortizacion->descripcion;
-                $partidahaber->idasiento = $idasiento;
-                $partidahaber->idsubcuenta = $subcuenta_haber->idsubcuenta;
-
-                if ($partidahaber->save()) {
-                    $this->amortizacion->end_life($id);
-                    $this->amortizacion->date_end_life($id, $fecha);
-                    $this->amortizacion->end_life_count($id, $asiento->idasiento);
-                    $this->new_message('Finalizada la vida útil del amortizado');
-                } else {
-                    $this->new_error_msg('Error al crear la línea de partida');
                     $asiento->delete();
-                    $this->linea_amortizacion->discount($linea->id_linea);
+                } else {
+                    //DEBE
+                    $partidadebe->debe = $amortizacion->valor;
+                    $partidadebe->coddivisa = $amortizacion->coddivisa;
+                    $partidadebe->codserie = $amortizacion->codserie;
+                    $partidadebe->codsubcuenta = $amortizacion->cod_subcuenta_haber;
+                    $partidadebe->concepto = $amortizacion->descripcion;
+                    $partidadebe->idasiento = $idasiento;
+                    $partidadebe->idsubcuenta = $subcuenta_debe->idsubcuenta;
+
+                    if ($partidadebe->save()) {
+                        
+                    } else {
+                        $this->new_error_msg('Error al crear la línea de partida');
+                        $asiento->delete();
+                    }
+
+                    //HABER
+                    $partidahaber->haber = $amortizacion->valor;
+                    $partidahaber->coddivisa = $amortizacion->coddivisa;
+                    $partidahaber->codserie = $amortizacion->codserie;
+                    $partidahaber->codsubcuenta = $amortizacion->cod_subcuenta_cierre;
+                    $partidahaber->concepto = $amortizacion->descripcion;
+                    $partidahaber->idasiento = $idasiento;
+                    $partidahaber->idsubcuenta = $subcuenta_haber->idsubcuenta;
+
+                    if ($partidahaber->save()) {
+                        $this->amortizacion->end_life($id);
+                        $this->amortizacion->date_end_life($id, $fecha);
+                        $this->amortizacion->end_life_count($id, $asiento->idasiento);
+                        $this->new_message('Finalizada la vida útil del amortizado');
+                    } else {
+                        $this->new_error_msg('Error al crear la línea de partida');
+                        $asiento->delete();
+                        $this->linea_amortizacion->discount($linea->id_linea);
+                    }
                 }
             }
         }
@@ -819,4 +812,23 @@ class amortizaciones extends fs_controller
         return array('periodo' => $periodo, 'fecha_inicio_periodo' => $fecha_inicio_periodo);
     }
 
+      /**
+     * @param $id_linea
+     */
+    private function eliminar_asiento($id_linea)
+    {
+        $lineas_amortizaciones = new linea_amortizacion();
+        $asiento = new asiento();
+        $linea = $lineas_amortizaciones->get_by_id_linea($id_linea);
+        $asiento_amortizacion = $asiento->get($linea->id_asiento);
+        
+        if (!$asiento_amortizacion) {
+            $lineas_amortizaciones->discount($id_linea);
+        } elseif ($asiento_amortizacion->delete()) {
+            $lineas_amortizaciones->discount($id_linea);
+        } else {
+            $this->new_message('No se ha podido eliminar el asiento');
+        }
+    }
+    
 }

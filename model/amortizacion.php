@@ -214,9 +214,11 @@ class amortizacion extends fs_model
     {
         if ($this->exists()) {
             $sql = "UPDATE amortizaciones SET 
+                 codsubcuentabeneficios = " . $this->var2str($this->cod_subcuenta_beneficios) . ",
                  codsubcuentacierre = " . $this->var2str($this->cod_subcuenta_cierre) . ",
                  codsubcuentadebe = " . $this->var2str($this->cod_subcuenta_debe) . ",
                  codsubcuentahaber = " . $this->var2str($this->cod_subcuenta_haber) . ",
+                 codsubcuentaperdidas = " . $this->var2str($this->cod_subcuenta_perdidas) . ",
                  contabilizacion = " . $this->var2str($this->contabilizacion) . ",    
                  descripcion = " . $this->var2str($this->descripcion) . ", 
                  fechafin = " . $this->var2str($this->fecha_fin) . ",
@@ -340,6 +342,26 @@ class amortizacion extends fs_model
     public function date_end_life($id, $fecha)
     {
         return $this->db->exec("UPDATE amortizaciones SET fechafinvidautil = " . $this->var2str($fecha) . " WHERE idamortizacion = " . $this->var2str($id) . ";");
+    }
+    
+    /**
+     * @param $id
+     * @param $cod_subcuenta_beneficios
+     * @param $cod_subcuenta_cierre
+     * @param $cod_subcuenta_debe
+     * @param $cod_subcuenta_haber
+     * @param $cod_subcuenta_perdidas
+     * @return mixed
+     */
+    public function update_counts($id, $cod_subcuenta_beneficios, $cod_subcuenta_cierre, $cod_subcuenta_debe, $cod_subcuenta_haber, $cod_subcuenta_perdidas)
+    {
+        return $this->db->exec("UPDATE amortizaciones SET 
+                 codsubcuentabeneficios = " . $this->var2str($cod_subcuenta_beneficios) . ",
+                 codsubcuentacierre = " . $this->var2str($cod_subcuenta_cierre) . ",
+                 codsubcuentadebe = " . $this->var2str($cod_subcuenta_debe) . ",
+                 codsubcuentahaber = " . $this->var2str($cod_subcuenta_haber) . ",
+                 codsubcuentaperdidas = " . $this->var2str($cod_subcuenta_perdidas) . "
+                WHERE idamortizacion = " . $this->var2str($id) . ";");
     }
 
     /**

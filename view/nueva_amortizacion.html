@@ -128,14 +128,14 @@
          <table class="table table-hover">      
             <thead>
                <tr>
-                  <th>Artículo</th>
-                  <th width="150" class="text-right">Tipo</th>
-                  <th width="150" class="text-right">Contabilización</th>
-                  <th width="200" class="text-right">Cantidad total a amortizar</th>
-                  <th width="150" class="text-right">Valor Residual</th>
-                  <th width="150" class="text-right">Años</th>
-                  <th width="150" class="text-right">Fecha Inicio</th>
-                  <th width="150" class="text-right">Fecha Final</th>
+                  <th style="min-width: 200px;">Artículo</th>
+                  <th width="150" class="text-right" style="min-width: 120px;">Tipo</th>
+                  <th width="150" class="text-right" style="min-width: 120px;">Contabilización</th>
+                  <th width="200" class="text-right" style="min-width: 180px;">Cantidad total a amortizar</th>
+                  <th width="150" class="text-right" style="min-width: 150px;">Valor Residual</th>
+                  <th width="150" class="text-right" style="min-width: 80px;">Años</th>
+                  <th width="150" class="text-right" style="min-width: 125px;">Fecha Inicio</th>
+                  <th width="150" class="text-right" style="min-width: 125px;">Fecha Final</th>
                </tr>
             </thead>
             <input name="id_factura" class="form-control hidden" value="{$fsc->id_factura}" readonly/>
@@ -179,14 +179,14 @@
       <ul class="nav nav-tabs" role="tablist">
          <li role="presentation" class="active">
             <a href="#lineas" aria-controls="lineas" role="tab" data-toggle="tab">
-               <span class="glyphicon glyphicon-align-justify" aria-hidden="true">
-               </span><span class="hidden-xs">&nbsp; Líneas</span>
+               <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
+               &nbsp; Líneas
             </a>
          </li>
          <li role="presentation">
             <a href="#subcuentas" aria-controls="subcuentas" role="tab" data-toggle="tab">
-               <span class="glyphicon glyphicon-book" aria-hidden="true">
-               </span><span class="hidden-xs">&nbsp; Subcuentas</span>
+               <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+                  &nbsp; Subcuentas
             </a>
          </li>
          {loop="$fsc->extensions"}
@@ -205,11 +205,11 @@
                <table class="table table-hover">
                   <thead>
                      <tr>
-                        <th width="150">Año Fiscal</th>
-                        <th width="150">Periodo</th>
-                        <th width="150">Fecha</th>
-                        <th>Artículo</th>
-                        <th width="150" class="text-right">Cantidad a amortizar</th>
+                        <th width="150" style="min-width: 80px;">Año Fiscal</th>
+                        <th width="150" style="min-width: 65px;">Periodo</th>
+                        <th width="150" style="min-width: 125px;">Fecha</th>
+                        <th style="min-width: 250px;" class="hidden-xs">Artículo</th>
+                        <th width="150" class="text-right" style="min-width: 150px;">Cantidad a amortizar</th>
                      </tr>
                   </thead>
                   <tbody>
@@ -224,7 +224,7 @@
                         <td>
                            <input name="fecha_{$key}" class="form-control datepicker text-right" value="{$value['fecha']}"/>
                         </td>
-                        <td>
+                        <td class="hidden-xs">
                            <input name="descripcion_{$key}" class="form-control" value="{$fsc->datos['descripcion']}" readonly/>
                         </td>
                         <td class="text-right">
@@ -268,11 +268,11 @@
                   <table class="table">
                      <thead>
                         <tr>
-                           <th width="190">Subcuenta</th>
-                           <th width="220">Código</th>
+                           <th width="190" >Subcuenta</th>
+                           <th width="220" style="min-width: 140px;">Código</th>
                            <th width="50"></th>
-                           <th>Descripción</th>
-                           <th class="text-right" width="140">Saldo</th>
+                           <th>Descripción style="min-width: 300px;"</th>
+                           <th class="text-right" width="140" style="min-width: 100px;">Saldo</th>
                         </tr>
                      </thead>
                      <tr>
@@ -436,15 +436,11 @@
             <div class="panel-footer">
                <a id="b_tabla_subcuentas" class="btn btn-sm btn-success">
                   <span class="glyphicon glyphicon-list"></span>
-                  <span>
-                     &nbsp;Ver Tabla de Subcuentas
-                  </span>
+                  &nbsp;Ver Tabla de Subcuentas
                </a>
                <a id="b_tabla_amortizaciones" class="btn btn-sm btn-success">
                   <span class="glyphicon glyphicon-list"></span>
-                  <span class="hidden-sm hidden-xs">
-                     &nbsp;Ver periodos para los diferentes amortizados
-                  </span>
+                  &nbsp;Ver periodos para los diferentes amortizados
                </a>
             </div>
          </div>
@@ -462,17 +458,17 @@
                   <table class="table table-hover">
                      <thead>
                         <tr>
-                           <th>Artículo</th>
+                           <th style="min-width: 200px;">Artículo</th>
                            <!--Tipo permanece oculto hasta que se crean más metodos de amortización, por porcentaje anual, por ejemplo-->
-                           <th width="150" class="text-right hidden">Tipo</th>
-                           <th width="150" class="text-right">Contabilización</th>
-                           <th width="150" class="text-right">Precio</th>
-                           <th width="150" class="text-right">Valor Residual</th>
-                           <th width="150" class="text-right">Años</th>
-                           <th width="150" class="text-right">Fecha Inicio</th>
+                           <th width="150" class="text-right hidden" style="min-width: 120px;">Tipo</th>
+                           <th width="150" class="text-right" style="min-width: 130px;">Contabilización</th>
+                           <th width="150" class="text-right" style="min-width: 120px;">Precio</th>
+                           <th width="150" class="text-right" style="min-width: 120px;">Valor Residual</th>
+                           <th width="150" class="text-right" style="min-width: 100px;">Años</th>
+                           <th width="150" class="text-right" style="min-width: 130px;">Fecha Inicio</th>
                            <!--Fecha final permanece oculta hasta que al sumar un periodo la fecha final se actualice instantaneamente-->
-                           <th width="150" class="text-right hidden">Fecha Final</th>
-                           <th width="150" class="text-right"></th>
+                           <th width="150" class="text-right hidden" style="min-width: 130px;">Fecha Final</th>
+                           <th width="100" class="text-right" style="min-width: 100px;"></th>
                         </tr>
                      </thead>
                      <tbody>
@@ -546,17 +542,17 @@
                   <table class="table table-hover">      
                      <thead>
                         <tr>
-                           <th>Factura</th>
+                           <th style="min-width: 200px;">Factura</th>
                            <!--Tipo permanece oculto hasta que se crean más metodos de amortización, por porcentaje anual, por ejemplo-->
-                           <th width="150" class="text-right hidden">Tipo</th>
-                           <th width="150" class="text-right">Contabilización</th>
-                           <th width="150" class="text-right">Neto</th>
-                           <th width="150" class="text-right">Valor Residual</th>
-                           <th width="150" class="text-right">Años</th>
-                           <th width="150" class="text-right">Fecha Inicio</th>
+                           <th width="150" class="text-right hidden" style="min-width: 120px;">Tipo</th>
+                           <th width="150" class="text-right" style="min-width: 130px;">Contabilización</th>
+                           <th width="150" class="text-right" style="min-width: 120px;">Precio</th>
+                           <th width="150" class="text-right" style="min-width: 120px;">Valor Residual</th>
+                           <th width="150" class="text-right" style="min-width: 100px;">Años</th>
+                           <th width="150" class="text-right" style="min-width: 130px;">Fecha Inicio</th>
                            <!--Fecha final permanece oculta hasta que al sumar un periodo la fecha final se actualice instantaneamente-->
-                           <th width="150" class="text-right hidden">Fecha Final</th>
-                           <th width="150" class="text-right"></th>
+                           <th width="150" class="text-right hidden" style="min-width: 130px;">Fecha Final</th>
+                           <th width="100" class="text-right" style="min-width: 100px;"></th>
                         </tr>
                      </thead>
                      <tbody>

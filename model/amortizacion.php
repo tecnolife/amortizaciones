@@ -96,6 +96,10 @@ class amortizacion extends fs_model
      */
     public $id_factura;
     /**
+     * @var null
+     */
+    public $id_factura_venta;
+    /**
      * @var int
      */
     public $periodo_final;
@@ -157,6 +161,7 @@ class amortizacion extends fs_model
             $this->id_amortizacion = $this->intval($t['idamortizacion']);
             $this->id_asiento_fin_vida = $this->intval($t['idasientofinvida']);
             $this->id_factura = $this->intval($t['idfactura']);
+            $this->id_factura_venta = $this->intval($t['idfacturaventa']);
             $this->periodo_final = $t['periodofinal'];
             $this->periodos = $t['periodos'];
             $this->residual = $t['residual'];
@@ -185,6 +190,7 @@ class amortizacion extends fs_model
             $this->id_amortizacion = null;
             $this->id_asiento_fin_vida = null;
             $this->id_factura = null;
+            $this->id_factura_venta = null;
             $this->periodo_final = 0;
             $this->periodos = 0;
             $this->residual = 0;
@@ -301,6 +307,15 @@ class amortizacion extends fs_model
      * @param $id
      * @return mixed
      */
+    public function resurrect_sale($id)
+    {
+        return $this->db->exec("UPDATE amortizaciones SET vendida = FALSE WHERE idamortizacion = " . $this->var2str($id) . ";");
+    }
+    
+    /**
+     * @param $id
+     * @return mixed
+     */
     public function complete($id)
     {
         return $this->db->exec("UPDATE amortizaciones SET completada = TRUE WHERE idamortizacion = " . $this->var2str($id) . ";");
@@ -332,6 +347,16 @@ class amortizacion extends fs_model
     public function end_life_count($id, $id_asiento)
     {
         return $this->db->exec("UPDATE amortizaciones SET idasientofinvida = " . $this->var2str($id_asiento) . " WHERE idamortizacion = " . $this->var2str($id) . ";");
+    }
+    
+    /**
+     * @param $id
+     * @param $id_factura
+     * @return mixed
+     */
+    public function sale_invoice($id, $id_factura)
+    {
+        return $this->db->exec("UPDATE amortizaciones SET idfacturaventa = " . $this->var2str($id_factura) . " WHERE idamortizacion = " . $this->var2str($id) . ";");
     }
     
     /**

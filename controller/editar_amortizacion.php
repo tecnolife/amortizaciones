@@ -22,6 +22,7 @@ require_model('amortizacion.php');
 require_model('asiento.php');
 require_model('linea_amortizacion.php');
 require_model('factura_proveedor.php');
+require_model('factura_cliente');
 require_model('ejercicio.php');
 
 
@@ -57,6 +58,10 @@ class editar_amortizacion extends fs_controller
     /**
      * @var
      */
+    public $factura_venta;
+    /**
+     * @var
+     */
     public $fecha_factura;
     /**
      * @var
@@ -67,9 +72,13 @@ class editar_amortizacion extends fs_controller
      */
     public $listado_lineas;
     /**
-     * @var
+     * @float
      */
     public $amortizado;
+    /**
+     * @float
+     */
+    public $sin_amortizar;
     /**
      * @var int
      */
@@ -86,11 +95,25 @@ class editar_amortizacion extends fs_controller
      * @var
      */
     public $falta_amortizar;
-    
+    /**
+     * @int
+     */
     public $cod_subcuenta_beneficios;
+    /**
+     * @int
+     */
     public $cod_subcuenta_cierre;
+    /**
+     * @int
+     */
     public $cod_subcuenta_debe;
+    /**
+     * @int
+     */
     public $cod_subcuenta_haber;
+    /**
+     * @int
+     */
     public $cod_subcuenta_perdidas;
 
     /**
@@ -187,11 +210,41 @@ class editar_amortizacion extends fs_controller
             //Hallar el periodo inicial
             $periodo_fecha = $this->periodo_por_fecha($this->amortizacion->fecha_inicio, $primer_ejercicio->fechafin, $primer_ejercicio->fechainicio, $this->amortizacion->contabilizacion);
             $this->periodo_inicial = $periodo_fecha['periodo'];
-            
+
             $this->cuentas_contables();
+            $this->facturas();
+            $this->calcular_restante();
         } 
     }
 
+    /**
+     * TODO PHPDoc
+     */
+    private function calcular_restante() {
+        
+        $lin = new linea_amortizacion();
+        
+        $periodo_fecha_inicio = $this->periodo_por_fecha($this->today(), $this->ejercicio_actual->fechafin, $this->ejercicio_actual->fechainicio, $this->amortizacion->contabilizacion);
+        $periodo = $periodo_fecha_inicio['periodo'];
+        $fecha_inicio = $periodo_fecha_inicio['fecha_inicio_periodo'];
+        $ano = (int)(Date('Y', strtotime($this->ejercicio_actual->fechainicio)));        
+        $linea = $lin->get_by_id_amor_ano_periodo($this->amortizacion->id_amortizacion, $ano, $periodo);
+        $dias_periodo = $this->diferencia_dias($fecha_inicio, $linea->fecha) + 1;
+        $dias_a_amortizar = $this->diferencia_dias($fecha_inicio, $this->today());
+        
+        $valor_linea = round($linea->cantidad/$dias_periodo * $dias_a_amortizar,2);
+        $this->amortizado = $valor_linea;
+        
+        foreach ($this->listado_lineas as $value) {
+            if ($value->id_linea == $linea->id_linea) {  
+            }
+            elseif (strtotime ($value->fecha) <= strtotime ($this->today())) {
+                $this->amortizado += $value->cantidad;
+            }
+        }
+        $this->sin_amortizar = $this->amortizacion->valor - $this->amortizado;
+    }
+    
     /**
      * @param $periodos
      * @param $fecha
@@ -435,7 +488,7 @@ class editar_amortizacion extends fs_controller
     }
     
     /**
-     * @param $id_linea
+     * @param $id_amortizacion
      * @return $array
      */
     private function resucitar($id_amortizacion)
@@ -447,8 +500,11 @@ class editar_amortizacion extends fs_controller
         $asiento_fin_vida = $asiento->get($amortizacion->id_asiento_fin_vida);
         
         if ($asiento_fin_vida->delete()) {
-            $amortizacion_model->resurrect($id_amortizacion);
-            
+            if ($amortizacion->fin_vida_util) {
+                $amortizacion_model->resurrect($id_amortizacion);
+            } elseif ($amortizacion->vendida) {
+                $amortizacion_model->resurrect_sale($id_amortizacion);
+            }
             $ejercicio_model = new ejercicio();
             $ejercicio = $ejercicio_model->get_by_fecha($amortizacion->fecha_fin_vida_util);
             $periodo_fecha = $this->periodo_por_fecha($amortizacion->fecha_fin_vida_util, $ejercicio->fechafin, $ejercicio->fechainicio, $amortizacion->contabilizacion);
@@ -458,7 +514,9 @@ class editar_amortizacion extends fs_controller
                 $linea = $lineas_amortizaciones->get_by_id_amor_ano_periodo($id_amortizacion, $ano, $periodo_fecha['periodo']);
                 $asiento_amortizacion = $asiento->get($linea->id_asiento);
 
-                if ($asiento_amortizacion->delete()) {
+                if ($asiento_amortizacion == null){
+                    $this->new_message('Amortización reanudada, se ha eliminado el asiento de venta del amortizado');
+                } elseif ($asiento_amortizacion->delete()) {
                     $lineas_amortizaciones->discount($linea->id_linea);
                     $this->new_message('Amortización reanudada, se ha eliminado el asiento de fin de la vida útil del amortizado y el el asiento que contabilizo el tiempo trancurrido en ese periodo');
                 } else {
@@ -472,7 +530,29 @@ class editar_amortizacion extends fs_controller
         }
     }
     
-     private function insertar_cuentas_contables($id, $cod_subcuenta_beneficios, $cod_subcuenta_cierre, $cod_subcuenta_debe, $cod_subcuenta_haber, $cod_subcuenta_perdidas) {
+    /**
+     * @param $dia1
+     * @param $dia2  
+     * @return int
+     */
+    private function diferencia_dias($dia1,$dia2) //Comprueba si el año tiene 365 o 366 dias
+    {
+        $dia1 = new DateTime($dia1);
+        $dia2 = new DateTime($dia2);
+        $dias = $dia1->diff($dia2);
+        $dias = $dias->format('%a');
+        return $dias;
+    }
+    
+    /**
+     * @param $id
+     * @param $cod_subcuenta_beneficios  
+     * @param $cod_subcuenta_cierre
+     * @param $cod_subcuenta_debe
+     * @param $cod_subcuenta_haber
+     * @param $cod_subcuenta_perdidas
+     */
+    private function insertar_cuentas_contables($id, $cod_subcuenta_beneficios, $cod_subcuenta_cierre, $cod_subcuenta_debe, $cod_subcuenta_haber, $cod_subcuenta_perdidas) {
         $amortizacion = new amortizacion();
         if ($amortizacion->update_counts($id, $cod_subcuenta_beneficios, $cod_subcuenta_cierre, $cod_subcuenta_debe, $cod_subcuenta_haber, $cod_subcuenta_perdidas)) {
             $this->new_message('Subcuentas actualizadas correctamente');
@@ -481,6 +561,9 @@ class editar_amortizacion extends fs_controller
         }
     }
 
+    /**
+     * TODO PHPDoc
+     */
     private function cuentas_contables() {
         if (isset($_REQUEST['buscar_subcuenta'])) {
             /// esto es para el autocompletar las subcuentas de la vista
@@ -523,6 +606,9 @@ class editar_amortizacion extends fs_controller
         }
     }
     
+    /**
+     * TODO PHPDoc
+     */
     public function url() {
         if ($this->amortizacion) {
             return 'index.php?page=' . __CLASS__ . '&id=' . $this->amortizacion->id_amortizacion;
@@ -530,6 +616,9 @@ class editar_amortizacion extends fs_controller
             return parent::url();
     }
 
+    /**
+     * TODO PHPDoc
+     */
     private function buscar_subcuenta() {
         /// desactivamos la plantilla HTML
         $this->template = FALSE;
@@ -550,19 +639,59 @@ class editar_amortizacion extends fs_controller
         header('Content-Type: application/json');
         echo json_encode(array('query' => $_REQUEST['buscar_subcuenta'], 'suggestions' => $json));
     }
- 
+    
     /**
-     * @param $dia1
-     * @param $dia2  
-     * @return int
+     * TODO PHPDoc
      */
-    private function diferencia_dias($dia1,$dia2) //Comprueba si el año tiene 365 o 366 dias
-    {
-        $dia1 = new DateTime($dia1);
-        $dia2 = new DateTime($dia2);
-        $dias = $dia1->diff($dia2);
-        $dias = $dias->format('%a');
-        return $dias;
+    private function facturas() {
+        if (isset($_REQUEST['buscar_factura'])) {
+            /// esto es para el autocompletar las subcuentas de la vista
+            $this->buscar_factura();
+        } else if ($this->amortizacion) {
+
+            $sc = new factura_cliente();
+            $this->factura_venta = $sc;
+            
+        } else {
+            $this->new_error_msg('Artículo no encontrado.', 'error', FALSE, FALSE);
+        }
+    }
+    
+    /**
+     * TODO PHPDoc
+     */
+    private function buscar_factura() {
+        /// desactivamos la plantilla HTML
+        $this->template = FALSE;
+
+        $factura = new factura_cliente();
+        $eje0 = new ejercicio();
+        $ejercicio_actual = $eje0->get_by_fecha($this->today());
+        if ($eje0->get_by_fecha(date('d-m-Y', strtotime($this->today() . '- 1 year')), TRUE, FALSE)) {
+            $fecha_inicial = $eje0->get_by_fecha(date('d-m-Y', strtotime($this->today() . '- 1 year')), TRUE, FALSE)->fechainicio;
+        } else {
+            $fecha_inicial = $ejercicio_actual->fechainicio;
+        }
+        if ($eje0->get_by_fecha(date('d-m-Y', strtotime($this->today() . '+ 1 year')), TRUE, FALSE)) {
+            $fecha_final = $eje0->get_by_fecha(date('d-m-Y', strtotime($this->today() . '+ 1 year')), TRUE, FALSE)->fechafin;
+        } else {
+            $fecha_final = $ejercicio_actual->fechafin;
+        }
+
+        $json = array();
+        foreach ($factura->all_desde($fecha_inicial, $fecha_final) as $subc) {
+            $json[] = array(
+                'value' => $subc->codigo,
+                'cliente' => $subc->nombrecliente,
+                'fecha' => $subc->fecha,
+                'total' => $this->show_precio($subc->neto),
+                'link' => $subc->url()
+            );
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(array('query' => $_REQUEST['buscar_factura'], 'suggestions' => $json));
     }
     
 }
+

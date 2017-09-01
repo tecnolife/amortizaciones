@@ -1,0 +1,200 @@
+<?php
+
+/**
+ * This file is part of FacturaScripts
+ * Copyright (C) 2016  David Ruiz Eguizábal       davidruegui@gmail.com
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+require_model('amortizacion.php');
+require_model('linea_amortizacion.php');
+require_model('factura_cliente.php');
+require_model('ejercicio.php');
+require_model('asiento.php');
+
+
+/**
+ * Class nueva_amortizacion
+ */
+class vender_amortizacion extends fs_controller
+{
+    /**
+     * @var
+     */
+    public $amortizacion;
+    /**
+     * @var
+     */
+    public $ultima_linea;
+    /**
+     * @var
+     */
+    public $fecha_ultima_linea;
+    /**
+     * @var
+     */
+    public $valor_ultima_linea;
+    /**
+     * @var
+     */
+    public $factura;
+    /**
+     * @int
+     */
+    public $sin_amortizar;
+    /**
+     * @int
+     */
+    public $amortizado;
+    
+    /**
+     * vender_amortizacion constructor.
+     */
+    public function __construct()
+    {
+        parent::__construct(__CLASS__, 'vender amortización', 'contabilidad', false, false);
+    }
+
+    /**
+     * TODO PHPDoc
+     */
+    protected function private_core() {
+        $factura = new factura_cliente();
+        $amortizacion = new amortizacion();
+        
+        $this->factura = $factura->get_by_codigo(filter_input(INPUT_POST, 'factura_codigo'));
+        $this->amortizacion = $amortizacion->get_by_amortizacion(filter_input(INPUT_POST, 'id_amortizacion', FILTER_VALIDATE_INT));
+        
+        if (isset($this->factura->idasiento)) {
+            $this->calcular($this->amortizacion->id_amortizacion, $this->factura->fecha);
+        } else {
+            $this->new_error_msg('Esta factura no tiene un asiento relacionado, y por tanto no se puede modificar para contabilizar la venta');
+            $this->new_error_msg('Entra a la factura y genera el asiento, despues podras contabilizar la venta');
+        }
+    }
+
+    /**
+     * @param $id_amortizacion
+     * @param $fecha
+     */
+    private function calcular($id_amortizacion, $fecha)
+    {
+        $lin = new linea_amortizacion();
+        $eje = new ejercicio();
+        $ejercicio = $eje->get_by_fecha($this->factura->fecha);
+        
+        $periodo_fecha_inicio = $this->periodo_por_fecha($fecha, $ejercicio->fechafin, $ejercicio->fechainicio, $this->amortizacion->contabilizacion);
+        $periodo = $periodo_fecha_inicio['periodo'];
+        $fecha_inicio_ultima = $periodo_fecha_inicio['fecha_inicio_periodo'];
+        $ano = (int)(Date('Y', strtotime($ejercicio->fechainicio)));
+        $this->ultima_linea = $lin->get_by_id_amor_ano_periodo($id_amortizacion, $ano, $periodo);
+        $dias_periodo = $this->diferencia_dias($fecha_inicio_ultima, $this->ultima_linea->fecha) + 1;
+        $dias_a_amortizar = $this->diferencia_dias($fecha_inicio_ultima, $fecha);
+        $this->fecha_ultima_linea = date('d-m-Y', strtotime($fecha . '- 1 day'));
+        
+        $this->valor_ultima_linea = round($this->ultima_linea->cantidad/$dias_periodo * $dias_a_amortizar,2);
+        $this->sin_amortizar = $this->ultima_linea->cantidad - $this->valor_ultima_linea;
+        $this->amortizado = $this->valor_ultima_linea;
+        
+        if ($this->ultima_linea->contabilizada == 1) {
+            $this->eliminar_asiento($this->ultima_linea->id_linea);
+        }
+        
+        $lineas = $lin->get_by_amortizacion($id_amortizacion);
+        $amortizado = 0;
+        $sin_amortizar = 0;
+        
+        foreach ($lineas as $value) {
+            if ($value->id_linea == $this->ultima_linea->id_linea) {  
+            }
+            elseif (strtotime ($value->fecha) <= strtotime ($fecha)) {
+                $this->amortizado += $value->cantidad;
+            } else {
+                $this->sin_amortizar += $value->cantidad;
+            }
+        }
+    }
+    
+    /**
+     * @param $fecha
+     * @param $ejercicio_fecha_fin
+     * @param $ejercicio_fecha_inicio
+     * @param $contabilizacion
+     * @return array
+     */
+    private function periodo_por_fecha($fecha, $ejercicio_fecha_fin, $ejercicio_fecha_inicio, $contabilizacion) {
+        
+        $mes = (int) (Date('m', strtotime($ejercicio_fecha_fin)));
+        if ($mes != 12) {
+            $mes_final = 12 - (int) (Date('m', strtotime($ejercicio_fecha_fin)));
+            $mes_inicio = (int) (Date('m', strtotime($fecha)));
+            $mes_fiscal = $mes_inicio + $mes_final - 12;
+            if ($mes_fiscal < 1) {
+                $mes_fiscal = $mes_fiscal + 12;
+            }
+        } else {
+            $mes_fiscal = (int) (Date('m', strtotime($fecha)));
+        }
+
+        if ($contabilizacion == 'anual') {
+            $periodo = 1;
+            $fecha_inicio_periodo = $ejercicio_fecha_inicio;
+        } elseif ($contabilizacion == 'trimestral') {
+            $periodo = ceil($mes_fiscal / 3);
+            $meses = 3 * ($periodo - 1);
+            $fecha_inicio_periodo = date('d-m-Y', strtotime($ejercicio_fecha_inicio . '+ ' . $meses . ' month'));
+        } elseif ($contabilizacion == 'mensual') {
+            $periodo = $mes_fiscal;
+            $meses = $periodo - 1;
+            $fecha_inicio_periodo = date('d-m-Y', strtotime($ejercicio_fecha_inicio . '+ ' . $meses . ' month'));
+        }
+        return array('periodo' => $periodo, 'fecha_inicio_periodo' => $fecha_inicio_periodo);
+    }
+    
+    /**
+     * @param $id_linea
+     */
+    private function eliminar_asiento($id_linea)
+    {
+        $lineas_amortizaciones = new linea_amortizacion();
+        $asiento = new asiento();
+        $linea = $lineas_amortizaciones->get_by_id_linea($id_linea);
+        $asiento_amortizacion = $asiento->get($linea->id_asiento);
+        
+        if (!$asiento_amortizacion) {
+            $lineas_amortizaciones->discount($id_linea);
+            $this->new_message('El asiento había sido eliminado manualmente desde la contabilidad, es mejor que el asiento sea eliminado desde la amortización');
+        } elseif ($asiento_amortizacion->delete()) {
+            $lineas_amortizaciones->discount($id_linea);
+            $this->new_message('Asiento eliminado');
+        } else {
+            $this->new_message('No se ha podido eliminar el asiento');
+        }
+    }
+    
+    /**
+     * @param $dia1
+     * @param $dia2  
+     * @return int
+     */
+    private function diferencia_dias($dia1,$dia2) //Comprueba si el año tiene 365 o 366 dias
+    {
+        $dia1 = new DateTime($dia1);
+        $dia2 = new DateTime($dia2);
+        $dias = $dia1->diff($dia2);
+        $dias = $dias->format('%a');
+        return $dias;
+    }
+}

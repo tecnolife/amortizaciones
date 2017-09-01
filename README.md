@@ -27,12 +27,16 @@ https://www.facturascripts.com
 <strong>Errores:</strong>
 <ul>
    <li>Si un asiento se elimina desde la contabidad/asientos, la amortización no lo tendra en cuenta, y este aparecera como contabilizado en "editar_amortizacion".</li>
+   <li>Dentro de "editar_amortizacion", si le das a "Modificar, cambiar fecha" y despues pulsas en el botón "Ver periodos para los diferentes amortizados",
+   el boton "Modificar" y todos los menus desplegables dejan de funcionar, también ocurre al crear una amortización y darle a los botones verdes que sacan ventanas emergentes, 
+   estos botones acceden a un html externo a traves de javascript, es un error muy raro, porque a veces funciona y a veces no</li> 
+   <li>SOLUCIÓN, sacar "Cambiar fecha" y "Aumentar valor" del desplegable.</li>
    <li>Idea: Comprobar si todos los asientos de las líneas contabilizadas existen al entrar en EDITAR AMORTIZACION, sino existen, se descontabiliza la línea.</li>
    <li>Idea: Algo parecido habría que utilizar al listar pendientes.</li>
 </ul>
 
 <br/>
-<strong>V4</strong>
+<strong>v4</strong> 28-07-2017
 <ul>
    <li>Posibilidad de elegir entre contabilización ANUAL, TRIMESTRAL o MENSUAL.</li>
    <li>Ahora el inicio del año fiscal no es siempre el 1 de enero, sino que coge la fecha inicial del EJERCICIO que coincida con el inicio de la amortización.</li>
@@ -44,7 +48,7 @@ https://www.facturascripts.com
 </ul>
 
 <br/>
-<strong>V5</strong>
+<strong>v5</strong> 24-08-2017
 <ul>
    <li>Menú, ahora el enlace a las amortizaciones se encuentra en "Contabilidad" en lugar de en "Compras".</li>
    <li>Autocompletado al poner las subcuentas contables, como en los artículos.</li>
@@ -54,7 +58,21 @@ https://www.facturascripts.com
 </ul>
 
 <br/>
-<strong>V5</strong>
+<strong>v6</strong> 24-08-2017
 <ul>
    <li>Solucionar un pequeño error al visualizar las tablas de periodos de las amortizaciones y las tablas de subcuentas.</li>
+</ul>
+
+<br/>
+<strong>v7</strong> 
+<ul>
+   <li>Venta de amortizaciones soportada</li>
+   <li>Mejora del reponsive, ahora se adapta mejor a todo tipo de pantallas</li>
+   <li>Solucionado error al crear el asiento de "Finalizar vida útil" de una amortizacion</li>
+</ul>
+<br/>
+<strong>Aviso</strong> 
+<ul>
+   <li>El asiento de finalizar vida útil se generaba mal, si habeis finalizado la vida útil de un amortizado, debeis entrar en esa amortización, reanudarla, y finalizarla de nuevo</li>
+   <li>Asi el asiento de generara bien</li>
 </ul>

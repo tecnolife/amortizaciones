@@ -343,10 +343,16 @@ class nueva_amortizacion extends fs_controller
         return $dias;
     }
     
+    /**
+     * TODO PHPDoc
+     */
     public function url() {
             return parent::url();
     }
 
+    /**
+     * TODO PHPDoc
+     */
     private function buscar_subcuenta() {
         /// desactivamos la plantilla HTML
         $this->template = FALSE;

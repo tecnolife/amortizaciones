@@ -201,48 +201,62 @@
       <div class="tab-content">
          <div role="tabpanel" class="tab-pane active" id="lineas">
             <br/><br/>
-            <div class="table-responsive">
-               <table class="table table-hover">
-                  <thead>
-                     <tr>
-                        <th width="150" style="min-width: 80px;">Año Fiscal</th>
-                        <th width="150" style="min-width: 65px;">Periodo</th>
-                        <th width="150" style="min-width: 125px;">Fecha</th>
-                        <th style="min-width: 250px;" class="hidden-xs">Artículo</th>
-                        <th width="150" class="text-right" style="min-width: 150px;">Cantidad a amortizar</th>
-                     </tr>
-                  </thead>
-                  <tbody>
-                     {loop="$fsc->lineas"} <!--TABLA LINEASAMORTIZACIONES-->
-                     <tr>
-                        <td>
-                           <input name="ano_{$key}" class="form-control" value="{$value['ano']}" readonly/>
-                        </td>
-                        <td>
-                           <input name="periodo_{$key}" class="form-control" value="{$value['periodo']}" readonly/>
-                        </td>
-                        <td>
-                           <input name="fecha_{$key}" class="form-control datepicker text-right" value="{$value['fecha']}"/>
-                        </td>
-                        <td class="hidden-xs">
-                           <input name="descripcion_{$key}" class="form-control" value="{$fsc->datos['descripcion']}" readonly/>
-                        </td>
-                        <td class="text-right">
-                           <input name="cantidad_{$key}" class="form-control"value="{$value['valor']}"/>
-                        </td>
-                     </tr>
-                     {/loop}
-                  </tbody>
-               </table>
+            <div class="tab-content">
+               {loop="$fsc->lineas"}
+               <div role="tabpanel" class="tab-pane {if="$key == 1"}active{/if}" id="lineas_{$key}">
+                  <div class="table-responsive">
+                     <table class="table table-hover">
+                        <thead>
+                           <tr>
+                              <th width="150" style="min-width: 80px;">Año Fiscal</th>
+                              <th width="150" style="min-width: 65px;">Periodo</th>
+                              <th width="150" style="min-width: 125px;">Fecha</th>
+                              <th style="min-width: 250px;" class="hidden-xs">Artículo</th>
+                              <th width="150" class="text-right" style="min-width: 150px;">Cantidad a amortizar</th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           {loop="$value"} <!--TABLA LINEASAMORTIZACIONES-->
+                           <tr>
+                              <td>
+                                 <input name="ano_{$key}" class="form-control" value="{$value['ano']}" readonly/>
+                              </td>
+                              <td>
+                                 <input name="periodo_{$key}" class="form-control" value="{$value['periodo']}" readonly/>
+                              </td>
+                              <td>
+                                 <input name="fecha_{$key}" class="form-control datepicker text-right" value="{$value['fecha']}"/>
+                              </td>
+                              <td class="hidden-xs">
+                                 <input name="descripcion_{$key}" class="form-control" value="{$fsc->datos['descripcion']}" readonly/>
+                              </td>
+                              <td class="text-right">
+                                 <input name="cantidad_{$key}" class="form-control"value="{$value['valor']}"/>
+                              </td>
+                           </tr>
+                           {/loop}
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+               {/loop}
             </div>
+            
+            <nav aria-label="Page navigation" class="text-center">
+               <ul class="pagination" role="tablist">
+                  {loop="$fsc->lineas"}
+                  <li role="presentation" class="{if="$key == 1"}active{/if}"><a href="#lineas_{$key}" aria-controls="lineas_{$key}" role="tab" data-toggle="tab">{$key}</a></li>
+                  {/loop}
+               </ul>
+            </nav>
 
             <div class="col-sm-12 text-right">
                <button type="submit" class="btn btn-sm btn-primary">
                   <span class="glyphicon glyphicon-floppy-disk"></span>&nbsp; Guardar...
                </button>
             </div>
-
-         </div>
+         </div>        
+         
          <div role="tabpanel" class="tab-pane" id="subcuentas">
 
                <div class="container-fluid">

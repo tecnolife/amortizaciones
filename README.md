@@ -13,26 +13,21 @@ https://www.facturascripts.com
 <br/>
 <strong>Tareas pendientes:</strong>
 <ul>
-   <li>Generar los ASIENTOS contables pertinentes al VENDER un amortizado.</li>
-   <li>Configurar CRON para que realice los asientos automáticamente.</li>
    <li>Introducir más tipos de contabilización, actualmente solo se soporta "Constante", hay que añadir el método de "Suma de digitos".</li>
+   <li>Mejorar la paginación</li>
    <li>Agregar más pestañas en "amortizaciones", a parte de "pendientes", "anuladas", "completadas", "vida útil finalizada", o un desplagable que actue de filtro.</li>
-   <li>Mejorar la paginación:</li>
    <li>-Si nos referimos a la paginación de la página "amortizaciones" no tiene mucho lio, sería coger cualquier optra paginación y adaptarla, la de los articulos por ejemplo.</li>
-   <li>-Pero si nos referimos a una paginación en "nueva_amortización" o en "editar_amortización", es más complicado, porque aqui todas las líneas forman parte de un formulario,
-   y es necesario que esten todas en el código html, por ahora la única manera que se me ocurre es utilizar la paginación de bootstrap.</li>
 </ul>
 
 <br/>
 <strong>Errores:</strong>
 <ul>
    <li>Si un asiento se elimina desde la contabidad/asientos, la amortización no lo tendra en cuenta, y este aparecera como contabilizado en "editar_amortizacion".</li>
+   <li>SOLUCIÓN, sacar "Cambiar fecha" y "Aumentar valor" del desplegable.</li>
+   <li>Idea: Comprobar si todos los asientos de las líneas contabilizadas existen con CRON.</li>
    <li>Dentro de "editar_amortizacion", si le das a "Modificar, cambiar fecha" y despues pulsas en el botón "Ver periodos para los diferentes amortizados",
    el boton "Modificar" y todos los menus desplegables dejan de funcionar, también ocurre al crear una amortización y darle a los botones verdes que sacan ventanas emergentes, 
    estos botones acceden a un html externo a traves de javascript, es un error muy raro, porque a veces funciona y a veces no</li> 
-   <li>SOLUCIÓN, sacar "Cambiar fecha" y "Aumentar valor" del desplegable.</li>
-   <li>Idea: Comprobar si todos los asientos de las líneas contabilizadas existen al entrar en EDITAR AMORTIZACION, sino existen, se descontabiliza la línea.</li>
-   <li>Idea: Algo parecido habría que utilizar al listar pendientes.</li>
 </ul>
 
 <br/>
@@ -76,3 +71,13 @@ https://www.facturascripts.com
    <li>El asiento de finalizar vida útil se generaba mal, si habeis finalizado la vida útil de un amortizado, debeis entrar en esa amortización, reanudarla, y finalizarla de nuevo</li>
    <li>Asi el asiento de generara bien</li>
 </ul>
+
+<br/>
+<strong>v8</strong> 
+<ul>
+   <li>Genera asientos automaticamente mediante CRON</li>
+   <li>Paginación para las líneas al crear o editar amortizaciones</li>
+   <li>Mejorar la visualización de las amortizaciones con colores</li>
+   <li>Solucionado error al crear el asiento de "Finalizar vida útil" de una amortizacion</li>
+</ul>
+<br/>

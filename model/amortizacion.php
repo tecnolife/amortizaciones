@@ -428,5 +428,55 @@ class amortizacion extends fs_model
     {
         return '';
     }
+    
+    /**
+     * @param $fecha
+     * @param $ejercicio_fecha_fin
+     * @param $ejercicio_fecha_inicio
+     * @param $contabilizacion
+     * @return array
+     */
+    public function periodo_por_fecha($fecha, $ejercicio_fecha_fin, $ejercicio_fecha_inicio, $contabilizacion) {
+        
+        $mes = (int) (Date('m', strtotime($ejercicio_fecha_fin)));
+        if ($mes != 12) {
+            $mes_final = 12 - (int) (Date('m', strtotime($ejercicio_fecha_fin)));
+            $mes_inicio = (int) (Date('m', strtotime($fecha)));
+            $mes_fiscal = $mes_inicio + $mes_final - 12;
+            if ($mes_fiscal < 1) {
+                $mes_fiscal = $mes_fiscal + 12;
+            }
+        } else {
+            $mes_fiscal = (int) (Date('m', strtotime($fecha)));
+        }
 
+        if ($contabilizacion == 'anual') {
+            $periodo = 1;
+            $fecha_inicio_periodo = $ejercicio_fecha_inicio;
+        } elseif ($contabilizacion == 'trimestral') {
+            $periodo = ceil($mes_fiscal / 3);
+            $meses = 3 * ($periodo - 1);
+            $fecha_inicio_periodo = date('d-m-Y', strtotime($ejercicio_fecha_inicio . '+ ' . $meses . ' month'));
+        } elseif ($contabilizacion == 'mensual') {
+            $periodo = $mes_fiscal;
+            $meses = $periodo - 1;
+            $fecha_inicio_periodo = date('d-m-Y', strtotime($ejercicio_fecha_inicio . '+ ' . $meses . ' month'));
+        }
+        return array('periodo' => $periodo, 'fecha_inicio_periodo' => $fecha_inicio_periodo);
+    }
+
+    /**
+     * @param $dia1
+     * @param $dia2  
+     * @return int
+     */
+    public function diferencia_dias($dia1,$dia2)
+    {
+        $dia1 = new DateTime($dia1);
+        $dia2 = new DateTime($dia2);
+        $dias = $dia1->diff($dia2);
+        $dias = $dias->format('%a');
+        return $dias;
+    }
+    
 }

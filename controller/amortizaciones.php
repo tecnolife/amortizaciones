@@ -40,14 +40,6 @@ class amortizaciones extends fs_controller
     /**
      * @var
      */
-    public $amortizacion;//modelo
-    /**
-     * @var
-     */
-    public $linea_amortizacion;//modelo
-    /**
-     * @var
-     */
     public $listado;
     /**
      * @var
@@ -80,8 +72,8 @@ class amortizaciones extends fs_controller
      */
     protected function private_core()
     {
-        $this->amortizacion = new amortizacion();
-        $this->linea_amortizacion = new linea_amortizacion();
+        $amor = new amortizacion();
+        $linea_amor = new linea_amortizacion();
         $this->offset = 0;
         $this->limite = FS_ITEM_LIMIT;
 
@@ -93,9 +85,9 @@ class amortizaciones extends fs_controller
         } elseif (filter_input(INPUT_GET, 'delete') !== null) {
             $this->eliminar_amortizacion();
         } elseif (filter_input(INPUT_GET, 'cancel') !== null) {
-            $this->amortizacion->cancel(filter_input(INPUT_GET, 'cancel'));
+            $amor->cancel(filter_input(INPUT_GET, 'cancel'));
         } elseif (filter_input(INPUT_GET, 'restart') !== null) {
-            $this->amortizacion->restart(filter_input(INPUT_GET, 'restart'));
+            $amor->restart(filter_input(INPUT_GET, 'restart'));
         } elseif (filter_input(INPUT_GET, 'endlife') !== null) {
             $this->finalizar_vida_util(filter_input(INPUT_POST, 'id_amortizacion'), filter_input(INPUT_POST, 'fecha'));
         } elseif (filter_input(INPUT_GET, 'sale') !== null || filter_input(INPUT_POST, 'sale') !== null) {
@@ -113,7 +105,7 @@ class amortizaciones extends fs_controller
         } elseif (filter_input(INPUT_GET, 'count') !== null) {
             $this->contabilizar(filter_input(INPUT_GET, 'count'));
         } elseif (filter_input(INPUT_GET, 'count_by_date') !== null) {
-            $lineas = $this->linea_amortizacion->get_by_date_and_amort(
+            $lineas = $linea_amor->get_by_date_and_amort(
                     filter_input(INPUT_POST, 'id_amortizacion', FILTER_VALIDATE_INT), 
                     filter_input(INPUT_POST, 'fecha_inicial'), 
                     filter_input(INPUT_POST, 'fecha_final')
@@ -124,9 +116,9 @@ class amortizaciones extends fs_controller
             }
         }
         
-        $this->listado = $this->amortizacion->all($this->offset, $this->limite);
-        $this->linea_amortizacion = new linea_amortizacion();
-        $this->listado_lineas = $this->linea_amortizacion->this_year();
+        $this->listado = $amor->all($this->offset, $this->limite);
+        $linea_amor = new linea_amortizacion();
+        $this->listado_lineas = $linea_amor->this_year();
 
         $this->listar_pendientes();
     }
@@ -145,6 +137,7 @@ class amortizaciones extends fs_controller
     private function vender($id_linea_amortizacion,$valor_ultima_linea,$fecha_ultima_linea,$id_factura,$amortizado,$valor_venta,$cantidad,$id_amortizacion,$referencia) 
     {        
         $amor = new amortizacion();
+        $linea_amor = new linea_amortizacion();
         $eje = new ejercicio();
         $fact_cli = new factura_cliente();
         $art = new articulo();
@@ -247,7 +240,7 @@ class amortizaciones extends fs_controller
             } else {
                 $this->new_error_msg('Error al contabilizar la amortización');
                 $asiento->delete();
-                $this->linea_amortizacion->discount($id_linea_amortizacion);
+                $linea_amor->discount($id_linea_amortizacion);
             }
             //HABER TOTAL
             $partidahabertotal->haber = $amortizacion->valor;
@@ -263,7 +256,7 @@ class amortizaciones extends fs_controller
             } else {
                 $this->new_error_msg('Error al contabilizar la amortización');
                 $asiento->delete();
-                $this->linea_amortizacion->discount($id_linea_amortizacion);
+                $linea_amor->discount($id_linea_amortizacion);
             }
             
             //DIFERENCIA
@@ -284,7 +277,7 @@ class amortizaciones extends fs_controller
                 } else {
                     $this->new_error_msg('Error al contabilizar la amortización');
                     $asiento->delete();
-                    $this->linea_amortizacion->discount($id_linea_amortizacion);
+                    $linea_amor->discount($id_linea_amortizacion);
                 }
             }
 
@@ -298,15 +291,15 @@ class amortizaciones extends fs_controller
             $partidaventas->idsubcuenta = $subcuenta_ventas->idsubcuenta;
 
             if ($partidaventas->save()) {
-                $this->amortizacion->sale_invoice($id_amortizacion, $factura_cliente->idfactura);
-                $this->amortizacion->sale($id_amortizacion);
-                $this->amortizacion->date_end_life($id_amortizacion, $factura_cliente->fecha);
-                $this->amortizacion->end_life_count($id_amortizacion, $asiento->idasiento);
+                $amor->sale_invoice($id_amortizacion, $factura_cliente->idfactura);
+                $amor->sale($id_amortizacion);
+                $amor->date_end_life($id_amortizacion, $factura_cliente->fecha);
+                $amor->end_life_count($id_amortizacion, $asiento->idasiento);
                 $this->new_message('Asiento de venta del amortizado creado correctamente');
             } else {
                 $this->new_error_msg('Error al contabilizar la amortización');
                 $asiento->delete();
-                $this->linea_amortizacion->discount($id_linea_amortizacion);
+                $linea_amor->discount($id_linea_amortizacion);
             }
         }                      
     }
@@ -316,50 +309,52 @@ class amortizaciones extends fs_controller
      */
     private function anadir_amortizacion()
     {
+        $amor = new amortizacion();
+        
         if (filter_input(INPUT_GET, 'editar') != null) {
             $amortizacion = new amortizacion();
-            $this->amortizacion = $amortizacion->get_by_amortizacion(filter_input(INPUT_POST, 'id_amortizacion', FILTER_VALIDATE_INT));
-            $this->amortizacion->descripcion = filter_input(INPUT_POST, 'descripcion');
-            $this->amortizacion->valor = filter_input(INPUT_POST, 'valor', FILTER_VALIDATE_FLOAT);
-            $this->amortizacion->periodos = filter_input(INPUT_POST, 'periodos', FILTER_VALIDATE_INT);
-            $this->amortizacion->fecha_fin = filter_input(INPUT_POST, 'fecha_fin');
+            $amor = $amortizacion->get_by_amortizacion(filter_input(INPUT_POST, 'id_amortizacion', FILTER_VALIDATE_INT));
+            $amor->descripcion = filter_input(INPUT_POST, 'descripcion');
+            $amor->valor = filter_input(INPUT_POST, 'valor', FILTER_VALIDATE_FLOAT);
+            $amor->periodos = filter_input(INPUT_POST, 'periodos', FILTER_VALIDATE_INT);
+            $amor->fecha_fin = filter_input(INPUT_POST, 'fecha_fin');
         } else {
-            $this->amortizacion->cod_subcuenta_beneficios = filter_input(INPUT_POST, 'cod_subcuenta_beneficios', FILTER_VALIDATE_INT);
-            $this->amortizacion->cod_subcuenta_cierre = filter_input(INPUT_POST, 'cod_subcuenta_cierre', FILTER_VALIDATE_INT);
-            $this->amortizacion->cod_subcuenta_debe = filter_input(INPUT_POST, 'cod_subcuenta_debe', FILTER_VALIDATE_INT);
-            $this->amortizacion->cod_subcuenta_haber = filter_input(INPUT_POST, 'cod_subcuenta_haber', FILTER_VALIDATE_INT);
-            $this->amortizacion->cod_subcuenta_perdidas = filter_input(INPUT_POST, 'cod_subcuenta_perdidas', FILTER_VALIDATE_INT);
-            $this->amortizacion->contabilizacion = filter_input(INPUT_POST, 'contabilizacion');
-            $this->amortizacion->descripcion = filter_input(INPUT_POST, 'descripcion');
-            $this->amortizacion->fecha_fin = filter_input(INPUT_POST, 'fecha_fin');
-            $this->amortizacion->fecha_inicio = filter_input(INPUT_POST, 'fecha_inicio');
-            $this->amortizacion->id_factura = filter_input(INPUT_POST, 'id_factura', FILTER_VALIDATE_INT);
-            $this->amortizacion->periodos = filter_input(INPUT_POST, 'periodos', FILTER_VALIDATE_INT);
-            $this->amortizacion->residual = filter_input(INPUT_POST, 'residual', FILTER_VALIDATE_FLOAT);
-            $this->amortizacion->tipo = filter_input(INPUT_POST, 'tipo');
-            $this->amortizacion->valor = filter_input(INPUT_POST, 'valor', FILTER_VALIDATE_FLOAT);
-            $this->amortizacion->coddivisa = filter_input(INPUT_POST, 'cod_divisa');
-            $this->amortizacion->codserie = filter_input(INPUT_POST, 'cod_serie');
-            $this->amortizacion->documento = filter_input(INPUT_POST, 'documento');
+            $amor->cod_subcuenta_beneficios = filter_input(INPUT_POST, 'cod_subcuenta_beneficios', FILTER_VALIDATE_INT);
+            $amor->cod_subcuenta_cierre = filter_input(INPUT_POST, 'cod_subcuenta_cierre', FILTER_VALIDATE_INT);
+            $amor->cod_subcuenta_debe = filter_input(INPUT_POST, 'cod_subcuenta_debe', FILTER_VALIDATE_INT);
+            $amor->cod_subcuenta_haber = filter_input(INPUT_POST, 'cod_subcuenta_haber', FILTER_VALIDATE_INT);
+            $amor->cod_subcuenta_perdidas = filter_input(INPUT_POST, 'cod_subcuenta_perdidas', FILTER_VALIDATE_INT);
+            $amor->contabilizacion = filter_input(INPUT_POST, 'contabilizacion');
+            $amor->descripcion = filter_input(INPUT_POST, 'descripcion');
+            $amor->fecha_fin = filter_input(INPUT_POST, 'fecha_fin');
+            $amor->fecha_inicio = filter_input(INPUT_POST, 'fecha_inicio');
+            $amor->id_factura = filter_input(INPUT_POST, 'id_factura', FILTER_VALIDATE_INT);
+            $amor->periodos = filter_input(INPUT_POST, 'periodos', FILTER_VALIDATE_INT);
+            $amor->residual = filter_input(INPUT_POST, 'residual', FILTER_VALIDATE_FLOAT);
+            $amor->tipo = filter_input(INPUT_POST, 'tipo');
+            $amor->valor = filter_input(INPUT_POST, 'valor', FILTER_VALIDATE_FLOAT);
+            $amor->coddivisa = filter_input(INPUT_POST, 'cod_divisa');
+            $amor->codserie = filter_input(INPUT_POST, 'cod_serie');
+            $amor->documento = filter_input(INPUT_POST, 'documento');
         }
 
         $inicio_ejercicio = filter_input(INPUT_POST, 'inicio_ejercicio');
         $inicio_amortizacion = filter_input(INPUT_POST, 'fecha_inicio');
         
         if ($inicio_ejercicio == $inicio_amortizacion) {
-            if ($this->amortizacion->contabilizacion == 'anual') {
-                $this->amortizacion->periodo_final = 1;
-            } elseif ($this->amortizacion->contabilizacion == 'trimestral') {
-                $this->amortizacion->periodo_final = 4;
-            } elseif ($this->amortizacion->contabilizacion == 'mensual') {
-                $this->amortizacion->periodo_final = 12;
+            if ($amor->contabilizacion == 'anual') {
+                $amor->periodo_final = 1;
+            } elseif ($amor->contabilizacion == 'trimestral') {
+                $amor->periodo_final = 4;
+            } elseif ($amor->contabilizacion == 'mensual') {
+                $amor->periodo_final = 12;
             }
         } else {
-            $this->amortizacion->periodo_final = filter_input(INPUT_POST, 'periodo_inicial');
+            $amor->periodo_final = filter_input(INPUT_POST, 'periodo_inicial');
         }
         
-        if ($this->amortizacion->save()) {
-            $this->anadir_lineas();
+        if ($amor->save()) {
+            $this->anadir_lineas($amor);
             if (filter_input(INPUT_GET, 'editar') != null) {
                 $this->new_message("La amortización se ha modificado con exito");
             } else {
@@ -374,9 +369,10 @@ class amortizaciones extends fs_controller
     /**
      * TODO PHPDoc
      */
-    private function anadir_lineas()
+    private function anadir_lineas($amor)
     {
         $linea_model = new linea_amortizacion();
+        $linea_amor = new linea_amortizacion();
         $this->listado_lineas = array();
         $contador = 0;
         $periodo_inicial = filter_input(INPUT_POST, 'periodo_inicial', FILTER_VALIDATE_INT);
@@ -395,14 +391,13 @@ class amortizaciones extends fs_controller
             $contador = 1;
         }
 
-        if ($this->amortizacion->contabilizacion == 'anual') {
+        if ($amor->contabilizacion == 'anual') {
             $periodos_ano = 1;
-        } elseif ($this->amortizacion->contabilizacion == 'trimestral') {
+        } elseif ($amor->contabilizacion == 'trimestral') {
             $periodos_ano = 4;
-        } elseif ($this->amortizacion->contabilizacion == 'mensual') {
+        } elseif ($amor->contabilizacion == 'mensual') {
             $periodos_ano = 12;
         }
-
         
         if (filter_input(INPUT_POST, 'disminuir_periodos', FILTER_VALIDATE_FLOAT) != null && filter_input(INPUT_POST, 'disminuir_periodos', FILTER_VALIDATE_FLOAT) < 0) {
             $disminuyendo = true;
@@ -420,38 +415,38 @@ class amortizaciones extends fs_controller
                 $periodo = 1;
             } 
             
-            $this->linea_amortizacion->id_amortizacion = $this->amortizacion->id_amortizacion;
+            $linea_amor->id_amortizacion = $amor->id_amortizacion;
             while ($periodo <= $periodos_ano) {
                 if ($linea_model->get_by_id_linea(filter_input(INPUT_POST,'id_linea_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT))) {
-                    $this->linea_amortizacion = $linea_model->get_by_id_linea(filter_input(INPUT_POST, 'id_linea_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT));
-                    $this->linea_amortizacion->fecha = filter_input(INPUT_POST, 'fecha_' . $ano . '_' . $periodo . '');
-                    $this->linea_amortizacion->cantidad = round(filter_input(INPUT_POST, 'cantidad_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_FLOAT), 2);
+                    $linea_amor = $linea_model->get_by_id_linea(filter_input(INPUT_POST, 'id_linea_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT));
+                    $linea_amor->fecha = filter_input(INPUT_POST, 'fecha_' . $ano . '_' . $periodo . '');
+                    $linea_amor->cantidad = round(filter_input(INPUT_POST, 'cantidad_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_FLOAT), 2);
                 } elseif (isset ($disminuyendo)){
                     $eliminar = true;
-                    $this->linea_amortizacion = $linea_model->get_by_id_amor_ano_periodo($this->amortizacion->id_amortizacion, $ano, $periodo);
+                    $linea_amor = $linea_model->get_by_id_amor_ano_periodo($amor->id_amortizacion, $ano, $periodo);
                 } else {
-                    $this->linea_amortizacion->ano = filter_input(INPUT_POST, 'ano_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT);
-                    $this->linea_amortizacion->cantidad = round(filter_input(INPUT_POST, 'cantidad_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_FLOAT), 2);
-                    $this->linea_amortizacion->fecha = filter_input(INPUT_POST, 'fecha_' . $ano . '_' . $periodo . '');
-                    $this->linea_amortizacion->periodo = filter_input(INPUT_POST, 'periodo_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT);
+                    $linea_amor->ano = filter_input(INPUT_POST, 'ano_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT);
+                    $linea_amor->cantidad = round(filter_input(INPUT_POST, 'cantidad_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_FLOAT), 2);
+                    $linea_amor->fecha = filter_input(INPUT_POST, 'fecha_' . $ano . '_' . $periodo . '');
+                    $linea_amor->periodo = filter_input(INPUT_POST, 'periodo_' . $ano . '_' . $periodo . '', FILTER_VALIDATE_INT);
                 }
                 
                 if (filter_input(INPUT_POST, 'fecha_cambio') != null) {
-                    if (strtotime($this->linea_amortizacion->fecha) >= strtotime(filter_input(INPUT_POST, 'fecha_cambio'))) {
-                        $this->eliminar_asiento($this->linea_amortizacion->id_linea);
+                    if (strtotime($linea_amor->fecha) >= strtotime(filter_input(INPUT_POST, 'fecha_cambio'))) {
+                        $linea_model->eliminar_asiento($linea_amor->id_linea);
                     }
                 }
 
                 if ($eliminar) {
                     $eliminar = false;
-                    $this->linea_amortizacion->delete();
-                    $this->linea_amortizacion->id_linea = null;
-                } elseif ($this->linea_amortizacion->save()) {
-                    $this->linea_amortizacion->id_linea = null;
+                    $linea_amor->delete();
+                    $linea_amor->id_linea = null;
+                } elseif ($linea_amor->save()) {
+                    $linea_amor->id_linea = null;
                 } else {
                     if (filter_input(INPUT_GET, 'nueva') != null) {
-                        $this->amortizacion->delete();
-                        $this->linea_amortizacion->delete_by_amor();
+                        $amor->delete();
+                        $linea_amor->delete_by_amor();
                     }
                     $this->new_error_msg("Error al crear la línea de amortización");
                 }
@@ -467,13 +462,15 @@ class amortizaciones extends fs_controller
      */
     private function eliminar_amortizacion()
     {
-        $this->amortizacion->id_amortizacion = filter_input(INPUT_GET, 'delete', FILTER_VALIDATE_INT);
-        $this->linea_amortizacion->id_amortizacion = filter_input(INPUT_GET, 'delete', FILTER_VALIDATE_INT);
+        $amor = new amortizacion();
+        $linea_amor = new linea_amortizacion();
+        $amor->id_amortizacion = filter_input(INPUT_GET, 'delete', FILTER_VALIDATE_INT);
+        $linea_amor->id_amortizacion = filter_input(INPUT_GET, 'delete', FILTER_VALIDATE_INT);
 
-        if ($this->amortizacion->delete()) {
+        if ($amor->delete()) {
             $this->new_message("La amortización se ha eliminado con exito");
 
-            if ($this->linea_amortizacion->delete_by_amor()) {
+            if ($linea_amor->delete_by_amor()) {
             } else {
                 $this->new_error_msg("Error al eliminar la línea de la amortización");
             }
@@ -488,17 +485,19 @@ class amortizaciones extends fs_controller
     private function listar_pendientes()
     {
         $ejercicio = new ejercicio;
+        $amor = new amortizacion();
+        $linea_amor = new linea_amortizacion();
         $ejercicio_actual = $ejercicio->get_by_fecha($this->today());
         $this->ano_antes = date('d-m-Y', strtotime($ejercicio_actual->fechainicio . '- 1 year'));
         
-        $listado = $this->linea_amortizacion->slope($this->today(), $this->ano_antes);      
+        $listado = $linea_amor->slope($this->today(), $this->ano_antes);      
         
         if (filter_input(INPUT_GET, 'count_slope') !== null) {
 
             $this->listado_pendientes = array();
             foreach ($listado as $key => $value) {
-                $amortizacion = $this->amortizacion->get_by_amortizacion($value->id_amortizacion);
-                if ($amortizacion->fin_vida_util == 0 && $amortizacion->amortizando == 1) {
+                $amortizacion = $amor->get_by_amortizacion($value->id_amortizacion);
+                if ($amortizacion->fin_vida_util == 0 && $amortizacion->amortizando == 1  && $amortizacion->vendida == 0) {
                     $this->listado_pendientes[] = array(
                         'ano' => $value->ano,
                         'cantidad' => $value->cantidad,
@@ -515,13 +514,13 @@ class amortizaciones extends fs_controller
                 $this->contabilizar($value['id_linea']);
             }
             $listado = array();
-            $listado = $this->linea_amortizacion->slope($this->today(), $this->ano_antes);
+            $listado = $linea_amor->slope($this->today(), $this->ano_antes);
         }
         
         $this->listado_pendientes = array();
         foreach ($listado as $key => $value) {
-            $amortizacion = $this->amortizacion->get_by_amortizacion($value->id_amortizacion);
-            if ($amortizacion->fin_vida_util == 0 && $amortizacion->amortizando == 1) {
+            $amortizacion = $amor->get_by_amortizacion($value->id_amortizacion);
+            if ($amortizacion->fin_vida_util == 0 && $amortizacion->amortizando == 1  && $amortizacion->vendida == 0) {
                 $this->listado_pendientes[] = array(
                     'ano' => $value->ano,
                     'cantidad' => $value->cantidad,
@@ -540,11 +539,13 @@ class amortizaciones extends fs_controller
      */
     private function contabilizar($id_linea)
     {
-        $linea = $this->linea_amortizacion->get_by_id_linea($id_linea);
-        $amortizacion = $this->amortizacion->get_by_amortizacion($linea->id_amortizacion);
+        $amor = new amortizacion();
+        $linea_amor = new linea_amortizacion();
+        $linea = $linea_amor->get_by_id_linea($id_linea);
+        $amortizacion = $amor->get_by_amortizacion($linea->id_amortizacion);
         $ejercicio_model = new ejercicio();
         
-        if ($amortizacion->fin_vida_util == 1){
+        if ($amortizacion->fin_vida_util == 1 || $amortizacion->vendida == 1){
             $this->new_error_msg('Este amortizado ya ha cumplido su vida útil y se crearon los asientos correspondientes');
         } elseif (!$ejercicio_model->get_by_fecha($linea->fecha, TRUE, FALSE)) {
             $this->new_error_msg('El ejercicio no esta creado, crealo y añade el plan contable para poder realizar los apuntes correctamente');
@@ -558,7 +559,7 @@ class amortizaciones extends fs_controller
                 $ejercicio_final = $ejercicio_model->get_by_fecha($amortizacion->fecha_fin);
                 $ano_final = (int) (Date('Y', strtotime($ejercicio_final->fechainicio)));
                 if ($ano_final == $linea->ano && $linea->periodo == $amortizacion->periodo_final) {
-                    $this->amortizacion->complete($amortizacion->id_amortizacion);
+                    $amor->complete($amortizacion->id_amortizacion);
                 }
             }
             //Fin de completar amortizacion
@@ -611,7 +612,7 @@ class amortizaciones extends fs_controller
                     } else {
                         $this->new_error_msg('Error al contabilizar la amortización');
                         $asiento->delete();
-                        $this->linea_amortizacion->discount($linea->id_linea);
+                        $linea_amor->discount($linea->id_linea);
                     }
 
                     //HABER
@@ -625,7 +626,7 @@ class amortizaciones extends fs_controller
 
                     if ($partidahaber->save()) {
                         $this->new_message('Línea contabilizada, asiento creado correctamente');
-                        $this->linea_amortizacion->count($linea->id_linea, $idasiento);
+                        $linea_amor->count($linea->id_linea, $idasiento);
                         $asiento->idasiento = null;
                         $partidadebe->idpartida = null;
                         $partidahaber->idpartida = null;
@@ -647,11 +648,13 @@ class amortizaciones extends fs_controller
      */
     private function contabilizar_fin_vida($id_linea,$cantidad,$fecha)
     {
-        $linea = $this->linea_amortizacion->get_by_id_linea($id_linea);
-        $amortizacion = $this->amortizacion->get_by_amortizacion($linea->id_amortizacion);
+        $amor = new amortizacion();
+        $linea_amor = new linea_amortizacion();
+        $linea = $linea_amor->get_by_id_linea($id_linea);
+        $amortizacion = $amor->get_by_amortizacion($linea->id_amortizacion);
         $ejercicio_model = new ejercicio();
         
-        if ($amortizacion->fin_vida_util == 1){
+        if ($amortizacion->fin_vida_util == 1 || $amortizacion->vendida == 1){
             $this->new_error_msg('Este amortizado ya ha cumplido su vida útil y se crearon los asientos correspondientes');
         } elseif (!$ejercicio_model->get_by_fecha($fecha, TRUE, FALSE)) {
             $this->new_error_msg('El ejercicio no esta creado, crealo y añade el plan contable para poder realizar los apuntes correctamente');
@@ -723,7 +726,7 @@ class amortizaciones extends fs_controller
 
                     if ($partidahaber->save()) {
                         $this->new_message('Línea contabilizada, asiento creado correctamente');
-                        $this->linea_amortizacion->count($linea->id_linea, $idasiento);
+                        $linea_amor->count($linea->id_linea, $idasiento);
                         return TRUE;
                     } else {
                         $this->new_error_msg('Error al crear la línea de partida');
@@ -744,10 +747,12 @@ class amortizaciones extends fs_controller
     private function finalizar_vida_util($id, $fecha)
     {
         //Crea el asiento
-        $amortizacion = $this->amortizacion->get_by_amortizacion($id);
+        $amor = new amortizacion();
+        $linea_amor = new linea_amortizacion();
+        $amortizacion = $amor->get_by_amortizacion($id);
         $ejercicio_model = new ejercicio();
 
-        if ($amortizacion->fin_vida_util == 1) {
+        if ($amortizacion->fin_vida_util == 1 || $amortizacion->vendida == 1) {
             $this->new_error_msg('Este amortizado ya ha cumplido su vida útil y se crearon los asientos correspondientes');
         } elseif (!$ejercicio_model->get_by_fecha($fecha, FALSE, FALSE)) {
             $this->new_error_msg('El ejercicio no esta creado, crealo y añade el plan contable para poder realizar los apuntes correctamente');
@@ -758,38 +763,40 @@ class amortizaciones extends fs_controller
         } else {
             $ejercicio = $ejercicio_model->get_by_fecha($fecha);
 
+            if ($amortizacion->residual != 0) $sin_amortizar = TRUE;
+            
             $sin_amortizar = $amortizacion->residual;
             $amortizado = 0;
-            $lineas = $this->linea_amortizacion->get_by_amortizacion($id);
+            $lineas = $linea_amor->get_by_amortizacion($id);
 
+            if (strtotime($lineas[0]->fecha) > strtotime($fecha)) $sin_amortizar = TRUE;
+                        
             foreach ($lineas as $key => $value) {
-                if (strtotime($value->fecha) <= strtotime($fecha)) {
-                    $sin_amortizar = $sin_amortizar + $value->cantidad;
+                if (strtotime($value->fecha) >= strtotime($fecha)) {
+                    $sin_amortizar = TRUE;
                 } else {
                     $amortizado = $amortizado + $value->cantidad;
                 }
             }
-
-            if ($sin_amortizar != 0) {
+            
+            if ($sin_amortizar) {
 
                 //saca el perido al que pertenece la fecha
-                $periodo_fecha_inicio = $this->periodo_por_fecha($fecha, $ejercicio->fechafin, $ejercicio->fechainicio, $amortizacion->contabilizacion);
+                $periodo_fecha_inicio = $amor->periodo_por_fecha($fecha, $ejercicio->fechafin, $ejercicio->fechainicio, $amortizacion->contabilizacion);
 
-            $ano_fiscal = (int) (date('Y', strtotime($ejercicio->fechainicio)));
-            $linea = $this->linea_amortizacion->get_by_id_amor_ano_periodo($amortizacion->id_amortizacion, $ano_fiscal, $periodo_fecha_inicio['periodo']);
-            
-            $primer_ejercicio = $ejercicio_model->get_by_fecha($amortizacion->fecha_inicio);
-            $primer_ano_fiscal = (int) (date('Y', strtotime($primer_ejercicio->fechainicio)));
-            $periodo_fecha_inicio = $this->periodo_por_fecha($fecha, $ejercicio->fechafin, $ejercicio->fechainicio, $amortizacion->contabilizacion);
-            
-            if ($periodo_fecha_inicio['periodo'] == $linea->periodo && $primer_ano_fiscal == $linea->ano) {
-                $fecha_inicio = $amortizacion->fecha_inicio;
-            } else {
+                $ano_fiscal = (int) (date('Y', strtotime($ejercicio->fechainicio)));
+                $linea = $linea_amor->get_by_id_amor_ano_periodo($amortizacion->id_amortizacion, $ano_fiscal, $periodo_fecha_inicio['periodo']);
                 $fecha_inicio = $periodo_fecha_inicio['fecha_inicio_periodo'];
-            }
-            
-            $dias_periodo = $this->diferencia_dias($fecha_inicio, $linea->fecha) + 1;
-                $dias_amortizado = $this->diferencia_dias($fecha_inicio, $fecha) + 1;
+                $primer_ejercicio = $ejercicio_model->get_by_fecha($amortizacion->fecha_inicio);
+                $primer_ano_fiscal = (int) (date('Y', strtotime($primer_ejercicio->fechainicio)));
+                $periodo_fecha_inicio = $amor->periodo_por_fecha($amortizacion->fecha_inicio, $ejercicio->fechafin, $ejercicio->fechainicio, $amortizacion->contabilizacion);
+
+                if ($periodo_fecha_inicio['periodo'] == $linea->periodo && $primer_ano_fiscal == $linea->ano) {
+                    $fecha_inicio = $amortizacion->fecha_inicio;
+                }
+
+                $dias_periodo = $amor->diferencia_dias($fecha_inicio, $linea->fecha) + 1;
+                $dias_amortizado = $amor->diferencia_dias($fecha_inicio, $fecha) + 1;
 
                 $valor = round($linea->cantidad / $dias_periodo * $dias_amortizado, 2);
 
@@ -862,7 +869,7 @@ class amortizaciones extends fs_controller
                     } else {
                         $this->new_error_msg('Error al crear la línea de partida');
                         $asiento->delete();
-                        $this->linea_amortizacion->discount($linea->id_linea);
+                        $linea_amor->discount($linea->id_linea);
                     }
 
                     //HABER
@@ -876,9 +883,9 @@ class amortizaciones extends fs_controller
 
                     if ($partidahaber->save()) {
                         if ($this->contabilizar_fin_vida($linea->id_linea, $valor, $fecha)) {
-                            $this->amortizacion->end_life($id);
-                            $this->amortizacion->date_end_life($id, $fecha);
-                            $this->amortizacion->end_life_count($id, $idasiento);
+                            $amor->end_life($id);
+                            $amor->date_end_life($id, $fecha);
+                            $amor->end_life_count($id, $idasiento);
                             $this->new_message('Finalizada la vida útil del amortizado');
                         } else {
                             $asiento->delete();
@@ -946,86 +953,17 @@ class amortizaciones extends fs_controller
                     $partidahaber->idsubcuenta = $subcuenta_haber->idsubcuenta;
 
                     if ($partidahaber->save()) {
-                        $this->amortizacion->end_life($id);
-                        $this->amortizacion->date_end_life($id, $fecha);
-                        $this->amortizacion->end_life_count($id, $asiento->idasiento);
+                        $amor->end_life($id);
+                        $amor->date_end_life($id, $fecha);
+                        $amor->end_life_count($id, $asiento->idasiento);
                         $this->new_message('Finalizada la vida útil del amortizado');
                     } else {
                         $this->new_error_msg('Error al crear la línea de partida');
                         $asiento->delete();
-                        $this->linea_amortizacion->discount($linea->id_linea);
+                        $linea_amor->discount($linea->id_linea);
                     }
                 }
             }
-        }
-    }
-
-    /**
-     * @param $dia1
-     * @param $dia2  
-     * @return int
-     */
-    private function diferencia_dias($dia1,$dia2) //Comprueba si el año tiene 365 o 366 dias
-    {
-        $dia1 = new DateTime($dia1);
-        $dia2 = new DateTime($dia2);
-        $dias = $dia1->diff($dia2);
-        $dias = $dias->format('%a');
-        return $dias;
-    }
-    
-    /**
-     * @param $fecha
-     * @param $ejercicio_fecha_fin
-     * @param $ejercicio_fecha_inicio
-     * @param $contabilizacion
-     * @return $array
-     */
-    private function periodo_por_fecha($fecha, $ejercicio_fecha_fin, $ejercicio_fecha_inicio, $contabilizacion) {
-
-        $mes = (int) (Date('m', strtotime($ejercicio_fecha_fin)));
-        if ($mes != 12) {
-            $mes_final = 12 - (int) (Date('m', strtotime($ejercicio_fecha_fin)));
-            $mes_inicio = (int) (Date('m', strtotime($fecha)));
-            $mes_fiscal = $mes_inicio + $mes_final - 12;
-            if ($mes_fiscal < 1) {
-                $mes_fiscal = $mes_fiscal + 12;
-            }
-        } else {
-            $mes_fiscal = (int) (Date('m', strtotime($fecha)));
-        }
-
-        if ($contabilizacion == 'anual') {
-            $periodo = 1;
-            $fecha_inicio_periodo = $ejercicio_fecha_inicio;
-        } elseif ($contabilizacion == 'trimestral') {
-            $periodo = ceil($mes_fiscal / 3);
-            $meses = 3 * ($periodo - 1);
-            $fecha_inicio_periodo = date('d-m-Y', strtotime($ejercicio_fecha_inicio . '+ ' . $meses . ' month'));
-        } elseif ($contabilizacion == 'mensual') {
-            $periodo = $mes_fiscal;
-            $meses = $periodo - 1;
-            $fecha_inicio_periodo = date('d-m-Y', strtotime($ejercicio_fecha_inicio . '+ ' . $meses . ' month'));
-        }
-        return array('periodo' => $periodo, 'fecha_inicio_periodo' => $fecha_inicio_periodo);
-    }
-
-      /**
-     * @param $id_linea
-     */
-    private function eliminar_asiento($id_linea)
-    {
-        $lineas_amortizaciones = new linea_amortizacion();
-        $asiento = new asiento();
-        $linea = $lineas_amortizaciones->get_by_id_linea($id_linea);
-        $asiento_amortizacion = $asiento->get($linea->id_asiento);
-        
-        if (!$asiento_amortizacion) {
-            $lineas_amortizaciones->discount($id_linea);
-        } elseif ($asiento_amortizacion->delete()) {
-            $lineas_amortizaciones->discount($id_linea);
-        } else {
-            $this->new_message('No se ha podido eliminar el asiento');
         }
     }
     

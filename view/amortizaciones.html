@@ -51,7 +51,15 @@
                   </thead>
                   <tbody>
                      {loop="$fsc->listado"}
-                     <tr class='clickableRow' href="index.php?page=editar_amortizacion&id={$value->id_amortizacion}">
+                     <tr class='clickableRow
+                           {if="$value->vendida == 1 || $value->fin_vida_util == 1"}
+                              danger
+                           {elseif="$value->completada == 1"}
+                              success
+                           {elseif="$value->amortizando == 0"}
+                              warning
+                           {/if}
+                         ' href="index.php?page=editar_amortizacion&id={$value->id_amortizacion}">
                         <td>
                            <div>{$value->descripcion}</div>
                         </td>

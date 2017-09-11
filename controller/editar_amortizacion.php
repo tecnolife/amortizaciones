@@ -72,6 +72,10 @@ class editar_amortizacion extends fs_controller
      */
     public $listado_lineas;
     /**
+     * @var
+     */
+    public $lineas;
+    /**
      * @float
      */
     public $amortizado;
@@ -133,7 +137,11 @@ class editar_amortizacion extends fs_controller
         $lineas_amortizaciones = new linea_amortizacion();
 
         if (filter_input(INPUT_GET, 'delete', FILTER_VALIDATE_INT) !== null) {
-            $this->eliminar_asiento(filter_input(INPUT_GET, 'delete', FILTER_VALIDATE_INT));
+            if ($lineas_amortizaciones->eliminar_asiento(filter_input(INPUT_GET, 'delete', FILTER_VALIDATE_INT))) {
+                $this->new_message('Asiento eliminado');
+            } else {
+                $this->new_error_msg('No se ha podido eliminar el asiento');
+            }
         } elseif
         (filter_input(INPUT_GET, 'renew', FILTER_VALIDATE_INT) !== null) {
             $this->resucitar(filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT));
@@ -150,14 +158,14 @@ class editar_amortizacion extends fs_controller
         }
         
         if (filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT) !== null) {
-            $amortizacion = new amortizacion();
-            $this->amortizacion = $amortizacion->get_by_amortizacion(filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT));
+            $amor = new amortizacion();
+            $this->amortizacion = $amor->get_by_amortizacion(filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT));
+            $this->lineas = $lineas_amortizaciones->get_by_amortizacion($this->amortizacion->id_amortizacion);
             $factura = new factura_proveedor();
             $this->factura = $factura->get($this->amortizacion->id_factura);
 
             $this->fecha_factura = date('d-m-Y', strtotime($this->factura->fecha));
-            $this->listado_lineas = $lineas_amortizaciones->get_by_amortizacion($this->amortizacion->id_amortizacion);
-            
+                        
             $ejercicio = new ejercicio;
             $primer_ejercicio = $ejercicio->get_by_fecha($this->amortizacion->fecha_inicio);
             $this->ejercicio_actual = $ejercicio->get_by_fecha($this->today());
@@ -208,7 +216,7 @@ class editar_amortizacion extends fs_controller
             $this->periodo_minimo = -($this->amortizacion->periodos - 1);
 
             //Hallar el periodo inicial
-            $periodo_fecha = $this->periodo_por_fecha($this->amortizacion->fecha_inicio, $primer_ejercicio->fechafin, $primer_ejercicio->fechainicio, $this->amortizacion->contabilizacion);
+            $periodo_fecha = $amor->periodo_por_fecha($this->amortizacion->fecha_inicio, $primer_ejercicio->fechafin, $primer_ejercicio->fechainicio, $this->amortizacion->contabilizacion);
             $this->periodo_inicial = $periodo_fecha['periodo'];
 
             $this->cuentas_contables();
@@ -223,25 +231,35 @@ class editar_amortizacion extends fs_controller
     private function calcular_restante() {
         
         $lin = new linea_amortizacion();
+        $amor = new amortizacion();
         
-        $periodo_fecha_inicio = $this->periodo_por_fecha($this->today(), $this->ejercicio_actual->fechafin, $this->ejercicio_actual->fechainicio, $this->amortizacion->contabilizacion);
+        $periodo_fecha_inicio = $amor->periodo_por_fecha($this->today(), $this->ejercicio_actual->fechafin, $this->ejercicio_actual->fechainicio, $this->amortizacion->contabilizacion);
         $periodo = $periodo_fecha_inicio['periodo'];
         $fecha_inicio = $periodo_fecha_inicio['fecha_inicio_periodo'];
         $ano = (int)(Date('Y', strtotime($this->ejercicio_actual->fechainicio)));        
         $linea = $lin->get_by_id_amor_ano_periodo($this->amortizacion->id_amortizacion, $ano, $periodo);
-        $dias_periodo = $this->diferencia_dias($fecha_inicio, $linea->fecha) + 1;
-        $dias_a_amortizar = $this->diferencia_dias($fecha_inicio, $this->today());
+        $dias_periodo = $amor->diferencia_dias($fecha_inicio, $linea->fecha) + 1;
+        $dias_a_amortizar = $amor->diferencia_dias($fecha_inicio, $this->today());
         
         $valor_linea = round($linea->cantidad/$dias_periodo * $dias_a_amortizar,2);
         $this->amortizado = $valor_linea;
         
-        foreach ($this->listado_lineas as $value) {
+        $this->listado_lineas = array();
+        
+        $contador = 0;
+        $grupos = 1;
+        foreach ($this->lineas as $value) {
+            $this->listado_lineas[$grupos][$contador] = $value;
+                       
             if ($value->id_linea == $linea->id_linea) {  
             }
             elseif (strtotime ($value->fecha) <= strtotime ($this->today())) {
                 $this->amortizado += $value->cantidad;
             }
+            $contador++;
+            if ($contador % 26 == 0) $grupos++;
         }
+                
         $this->sin_amortizar = $this->amortizacion->valor - $this->amortizado;
     }
     
@@ -251,7 +269,8 @@ class editar_amortizacion extends fs_controller
      */
     private function cambiar_periodos($periodos, $fecha) 
     {
-        if (strtotime($fecha) < strtotime($this->listado_lineas[0]->fecha)) {
+        $amor = new amortizacion();
+        if (strtotime($fecha) < strtotime($this->lineas[0]->fecha)) {
             $this->new_advice('La fecha introducida corresponde con el primer periodo de la amortización, 
                                por lo que no habrá ningún asiento contable creado, quizás sea mejor que elimines esta amortización y la crees de nuevo');
         }
@@ -261,7 +280,7 @@ class editar_amortizacion extends fs_controller
         $primer_ejercicio = $eje->get_by_fecha($this->amortizacion->fecha_inicio);
         $fecha_inicio = date('d-m-Y', strtotime($primer_ejercicio->fechainicio . '+' .$this->amortizacion->periodos. ' year'));
         $fecha_fin = date('d-m-Y', strtotime($primer_ejercicio->fechafin . '+' .$this->amortizacion->periodos. ' year'));
-        $fecha_periodo = $this->periodo_por_fecha($this->amortizacion->fecha_inicio, $fecha_fin, $fecha_inicio, $this->amortizacion->contabilizacion);
+        $fecha_periodo = $amor->periodo_por_fecha($this->amortizacion->fecha_inicio, $fecha_fin, $fecha_inicio, $this->amortizacion->contabilizacion);
         $fecha_periodo = $fecha_periodo['fecha_inicio_periodo'];
         
         $periodos_pendientes = 0;
@@ -273,7 +292,7 @@ class editar_amortizacion extends fs_controller
         $contador = 0;
         
         //Recorremos las lineas actuales
-        foreach ($this->listado_lineas as $key => $value) { 
+        foreach ($this->lineas as $key => $value) { 
             if (strtotime($value->fecha) >= strtotime($fecha)) {
                 $pendiente += $value->cantidad;
                 $periodos_pendientes += 1;
@@ -300,9 +319,9 @@ class editar_amortizacion extends fs_controller
         $restantes = 0;
         if ($periodos < 0) {    //PARTE MENOS periodos
             //Eliminar lineas sobrantes, SIN añadir el valor
-            foreach ($this->listado_lineas as $key => $value) {
+            foreach ($this->lineas as $key => $value) {
                 if ($key >= $contador - $periodos_ano * (-$periodos)) {
-                    unset($this->listado_lineas[$key]);
+                    unset($this->lineas[$key]);
                 } elseif (strtotime($value->fecha) >= strtotime($fecha)) {
                     $restantes += 1;
                 }
@@ -311,30 +330,30 @@ class editar_amortizacion extends fs_controller
             //Recorremos todas las líneas para añadir el valor
             $fecha_inicio = date('d-m-Y', strtotime($primer_ejercicio->fechainicio . '+' .$this->amortizacion->periodos. ' year'));
             $fecha_fin = date('d-m-Y', strtotime($primer_ejercicio->fechafin . '+' .$this->amortizacion->periodos. ' year'));
-            $fecha_periodo = $this->periodo_por_fecha($this->amortizacion->fecha_inicio, $fecha_fin, $fecha_inicio, $this->amortizacion->contabilizacion);
+            $fecha_periodo = $amor->periodo_por_fecha($this->amortizacion->fecha_inicio, $fecha_fin, $fecha_inicio, $this->amortizacion->contabilizacion);
             $fecha_periodo = $fecha_periodo['fecha_inicio_periodo'];
             
             $periodos_pendientes = $restantes - 1;
             $ejercicio_fecha = $eje->get_by_fecha($fecha);
-            $fecha_periodo_inicial = $this->periodo_por_fecha($fecha, $ejercicio_fecha->fechafin, $ejercicio_fecha->fechainicio, $this->amortizacion->contabilizacion);
-            $dias_totales = $this->diferencia_dias($fecha_periodo_inicial['fecha_inicio_periodo'], $this->amortizacion->fecha_fin) + 1;
-            $dias_ultimo_periodo = $this->diferencia_dias($fecha_periodo, $this->amortizacion->fecha_fin) + 1;
+            $fecha_periodo_inicial = $amor->periodo_por_fecha($fecha, $ejercicio_fecha->fechafin, $ejercicio_fecha->fechainicio, $this->amortizacion->contabilizacion);
+            $dias_totales = $amor->diferencia_dias($fecha_periodo_inicial['fecha_inicio_periodo'], $this->amortizacion->fecha_fin) + 1;
+            $dias_ultimo_periodo = $amor->diferencia_dias($fecha_periodo, $this->amortizacion->fecha_fin) + 1;
             $valor_ultimo_periodo = $pendiente / ($dias_totales / $dias_ultimo_periodo);
             $valor_periodo = round(($pendiente - $valor_ultimo_periodo) / $periodos_pendientes, 2);
             $total = $valor_periodo * $periodos_pendientes;
             
-            foreach ($this->listado_lineas as $key => $value) {
+            foreach ($this->lineas as $key => $value) {
                 if (strtotime($value->fecha) >= strtotime($fecha)) {
                     $value->contabilizada = 0;
                     $value->cantidad = $valor_periodo;
                 }
             }
-            $this->listado_lineas[$contador - $periodos_ano * (-$periodos) - 1]->cantidad = $pendiente - $total;
-            $this->listado_lineas[$contador - $periodos_ano * (-$periodos) - 1]->fecha = $this->amortizacion->fecha_fin;
+            $this->lineas[$contador - $periodos_ano * (-$periodos) - 1]->cantidad = round($pendiente - $total, 2);
+            $this->lineas[$contador - $periodos_ano * (-$periodos) - 1]->fecha = $this->amortizacion->fecha_fin;
             
         } elseif ($periodos > 0) {  //PARTE MAS periodos
             //Añadimos las líneas nuevas, SIN añadir el valor
-            $this->listado_lineas[$contador-1]->fecha = date('d-m-Y', strtotime($fecha_periodo . '-1 day'));        
+            $this->lineas[$contador-1]->fecha = date('d-m-Y', strtotime($fecha_periodo . '-1 day'));        
             $linea = new linea_amortizacion();
             while ($ejercico <= $ejercicio_final) {
                 while ($periodo <= $periodos_ano) {
@@ -347,13 +366,13 @@ class editar_amortizacion extends fs_controller
 
                     if ($periodo == $this->amortizacion->periodo_final && $ejercico == $ejercicio_final) {
                         $nueva_linea->fecha = $this->amortizacion->fecha_fin;
-                        $this->listado_lineas[$contador] = $nueva_linea;
+                        $this->lineas[$contador] = $nueva_linea;
                         break;
                     } else {
                         $fecha_periodo = date('d-m-Y', strtotime($fecha_periodo . '+' . $meses . ' month'));
                         $nueva_linea->fecha = date('d-m-Y', strtotime($fecha_periodo . '-1 day'));
                     }
-                    $this->listado_lineas[$contador] = $nueva_linea;
+                    $this->lineas[$contador] = $nueva_linea;
                     $contador += 1;
                     $periodo += 1;
                 }
@@ -364,19 +383,19 @@ class editar_amortizacion extends fs_controller
             //Recorremos todas las líneas para añadir el valor
             $periodos_pendientes = ($periodos_pendientes + $periodos * $periodos_ano) - 1;
             $ejercicio_fecha = $eje->get_by_fecha($fecha);
-            $fecha_periodo_inicial = $this->periodo_por_fecha($fecha, $ejercicio_fecha->fechafin, $ejercicio_fecha->fechainicio, $this->amortizacion->contabilizacion);
-            $dias_totales = $this->diferencia_dias($fecha_periodo_inicial['fecha_inicio_periodo'], $this->amortizacion->fecha_fin) + 1;
-            $dias_ultimo_periodo = $this->diferencia_dias($fecha_periodo, $this->amortizacion->fecha_fin) + 1;
+            $fecha_periodo_inicial = $amor->periodo_por_fecha($fecha, $ejercicio_fecha->fechafin, $ejercicio_fecha->fechainicio, $this->amortizacion->contabilizacion);
+            $dias_totales = $amor->diferencia_dias($fecha_periodo_inicial['fecha_inicio_periodo'], $this->amortizacion->fecha_fin) + 1;
+            $dias_ultimo_periodo = $amor->diferencia_dias($fecha_periodo, $this->amortizacion->fecha_fin) + 1;
             $valor_ultimo_periodo = $pendiente / ($dias_totales / $dias_ultimo_periodo);
             $valor_periodo = round(($pendiente - $valor_ultimo_periodo) / $periodos_pendientes, 2);
             $total = $valor_periodo * $periodos_pendientes;
-            foreach ($this->listado_lineas as $key => $value) {
+            foreach ($this->lineas as $key => $value) {
                 if (strtotime($value->fecha) >= strtotime($fecha)) {
                     $value->contabilizada = 0;
                     $value->cantidad = $valor_periodo;
                 }
             }
-            $this->listado_lineas[$contador]->cantidad = $pendiente - $total;
+            $this->lineas[$contador]->cantidad = round($pendiente - $total, 2);
         }
     }
     
@@ -386,23 +405,24 @@ class editar_amortizacion extends fs_controller
      */
     private function aumentar_valor($valor,$fecha)
     {
+        $amor = new amortizacion();
         $this->amortizacion->valor += $valor;
         $periodos_pendientes = 0;
         $periodos_anteriores = 0;
                
-        foreach ($this->listado_lineas as $key => $value) {   
+        foreach ($this->lineas as $key => $value) {   
             if (strtotime($value->fecha) < strtotime($fecha)) {
                 $periodos_anteriores += 1;
             } else {
                 $periodos_pendientes += 1;
             }
         }
-        $dias_primer_periodo = $this->diferencia_dias($fecha, $this->listado_lineas[$periodos_anteriores]->fecha) + 1;
-        $dias_totales = $this->diferencia_dias($fecha, $this->amortizacion->fecha_fin);
-        $dias_ultimo_periodo = $this->diferencia_dias($this->listado_lineas[$periodos_anteriores + $periodos_pendientes - 2]->fecha, $this->amortizacion->fecha_fin);
+        $dias_primer_periodo = $amor->diferencia_dias($fecha, $this->lineas[$periodos_anteriores]->fecha) + 1;
+        $dias_totales = $amor->diferencia_dias($fecha, $this->amortizacion->fecha_fin);
+        $dias_ultimo_periodo = $amor->diferencia_dias($this->lineas[$periodos_anteriores + $periodos_pendientes - 2]->fecha, $this->amortizacion->fecha_fin);
         $valor_ultimo_periodo = $valor / ($dias_totales / $dias_ultimo_periodo);
                     
-        if ($this->diferencia_dias($fecha, $this->listado_lineas[$periodos_anteriores-1]->fecha) == 1) {
+        if ($amor->diferencia_dias($fecha, $this->lineas[$periodos_anteriores-1]->fecha) == 1) {
             $valor_primer_periodo = round($valor_hasta_penul/($periodos_pendientes - 2), 2);
         } else {
             $valor_primer_periodo = round($valor / ($dias_totales / $dias_primer_periodo), 2);
@@ -412,7 +432,7 @@ class editar_amortizacion extends fs_controller
         
         $periodo = 0;
         $acumulado = 0;
-        foreach ($this->listado_lineas as $key => $value) {
+        foreach ($this->lineas as $key => $value) {
             if (strtotime($value->fecha) >= strtotime($fecha)) {
                 $value->contabilizada = 0;
                 $periodo += 1;
@@ -430,63 +450,6 @@ class editar_amortizacion extends fs_controller
         }   
     }
     
-     /**
-     * @param $fecha
-     * @param $ejercicio_fecha_fin
-     * @param $ejercicio_fecha_inicio
-     * @param $contabilizacion
-     * @return int
-     */
-    private function periodo_por_fecha($fecha, $ejercicio_fecha_fin, $ejercicio_fecha_inicio, $contabilizacion) {
-        
-        $mes = (int) (Date('m', strtotime($ejercicio_fecha_fin)));
-        if ($mes != 12) {
-            $mes_final = 12 - (int) (Date('m', strtotime($ejercicio_fecha_fin)));
-            $mes_inicio = (int) (Date('m', strtotime($fecha)));
-            $mes_fiscal = $mes_inicio + $mes_final - 12;
-            if ($mes_fiscal < 1) {
-                $mes_fiscal = $mes_fiscal + 12;
-            }
-        } else {
-            $mes_fiscal = (int) (Date('m', strtotime($fecha)));
-        }
-
-        if ($contabilizacion == 'anual') {
-            $periodo = 1;
-            $fecha_inicio_periodo = $ejercicio_fecha_inicio;
-        } elseif ($contabilizacion == 'trimestral') {
-            $periodo = ceil($mes_fiscal / 3);
-            $meses = 3 * ($periodo - 1);
-            $fecha_inicio_periodo = date('d-m-Y', strtotime($ejercicio_fecha_inicio . '+ ' . $meses . ' month'));
-        } elseif ($contabilizacion == 'mensual') {
-            $periodo = $mes_fiscal;
-            $meses = $periodo - 1;
-            $fecha_inicio_periodo = date('d-m-Y', strtotime($ejercicio_fecha_inicio . '+ ' . $meses . ' month'));
-        }
-        return array('periodo' => $periodo, 'fecha_inicio_periodo' => $fecha_inicio_periodo);
-    }
-    
-    /**
-     * @param $id_linea
-     */
-    private function eliminar_asiento($id_linea)
-    {
-        $lineas_amortizaciones = new linea_amortizacion();
-        $asiento = new asiento();
-        $linea = $lineas_amortizaciones->get_by_id_linea($id_linea);
-        $asiento_amortizacion = $asiento->get($linea->id_asiento);
-        
-        if (!$asiento_amortizacion) {
-            $lineas_amortizaciones->discount($id_linea);
-            $this->new_message('El asiento había sido eliminado manualmente desde la contabilidad, es mejor que el asiento sea eliminado desde la amortización');
-        } elseif ($asiento_amortizacion->delete()) {
-            $lineas_amortizaciones->discount($id_linea);
-            $this->new_message('Asiento eliminado');
-        } else {
-            $this->new_message('No se ha podido eliminar el asiento');
-        }
-    }
-    
     /**
      * @param $id_amortizacion
      * @return $array
@@ -495,20 +458,20 @@ class editar_amortizacion extends fs_controller
     {
         $lineas_amortizaciones = new linea_amortizacion();
         $asiento = new asiento();
-        $amortizacion_model = new amortizacion();
-        $amortizacion = $amortizacion_model->get_by_amortizacion($id_amortizacion);
+        $amor = new amortizacion();
+        $amortizacion = $amor->get_by_amortizacion($id_amortizacion);
         $asiento_fin_vida = $asiento->get($amortizacion->id_asiento_fin_vida);
         
         if ($asiento_fin_vida->delete()) {
             if ($amortizacion->fin_vida_util) {
-                $amortizacion_model->resurrect($id_amortizacion);
+                $amor->resurrect($id_amortizacion);
             } elseif ($amortizacion->vendida) {
-                $amortizacion_model->resurrect_sale($id_amortizacion);
+                $amor->resurrect_sale($id_amortizacion);
             }
             $ejercicio_model = new ejercicio();
             $ejercicio = $ejercicio_model->get_by_fecha($amortizacion->fecha_fin_vida_util);
-            $periodo_fecha = $this->periodo_por_fecha($amortizacion->fecha_fin_vida_util, $ejercicio->fechafin, $ejercicio->fechainicio, $amortizacion->contabilizacion);
-            $ano = $mes = (int) (Date('Y', strtotime($ejercicio->fechainicio)));
+            $periodo_fecha = $amor->periodo_por_fecha($amortizacion->fecha_fin_vida_util, $ejercicio->fechafin, $ejercicio->fechainicio, $amortizacion->contabilizacion);
+            $ano = (int) (Date('Y', strtotime($ejercicio->fechainicio)));
             
             if (strtotime($amortizacion->fecha_fin_vida_util) < strtotime($amortizacion->fecha_fin)) {
                 $linea = $lineas_amortizaciones->get_by_id_amor_ano_periodo($id_amortizacion, $ano, $periodo_fecha['periodo']);
@@ -528,20 +491,6 @@ class editar_amortizacion extends fs_controller
         } else {
             $this->new_message('No se ha podido reanudar la amortización');
         }
-    }
-    
-    /**
-     * @param $dia1
-     * @param $dia2  
-     * @return int
-     */
-    private function diferencia_dias($dia1,$dia2) //Comprueba si el año tiene 365 o 366 dias
-    {
-        $dia1 = new DateTime($dia1);
-        $dia2 = new DateTime($dia2);
-        $dias = $dia1->diff($dia2);
-        $dias = $dias->format('%a');
-        return $dias;
     }
     
     /**

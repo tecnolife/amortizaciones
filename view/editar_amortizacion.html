@@ -284,7 +284,7 @@
             <div class="page-header">
                <h1>
                   Amortización sobre la factura 
-                  <a href="index.php?page=ventas_factura&amp;id={$fsc->amortizacion->id_factura}" target="_blank" style="font-size: 35px;">{$fsc->factura->codigo}</a>
+                  <a href="index.php?page=compras_factura&amp;id={$fsc->amortizacion->id_factura}" target="_blank" style="font-size: 35px;">{$fsc->factura->codigo}</a>
                </h1>
             </div>
          </div>
@@ -380,7 +380,7 @@
       <ul class="nav nav-tabs" role="tablist">
          <li role="presentation" class="active">
             <a href="#lineas" aria-controls="lineas" role="tab" data-toggle="tab">
-               <span class="glyphicon glyphicon-align-justify" aria-hidden="true">
+               <span class="glyphicon glyphicon-book" aria-hidden="true">
                </span>&nbsp; Líneas
             </a>
          </li>
@@ -400,88 +400,110 @@
       </ul>
       
       <div class="tab-content">
+         
          <div role="tabpanel" class="tab-pane active" id="lineas">
-            <br/>
-            <div class="table-responsive">
-               <table class="table table-hover">
-                  <thead>
-                     <tr>
-                        <th width="100" style="min-width: 100px;">Año Fiscal</th>
-                        <th width="65" style="min-width: 65px;">Periodo</th>
-                        <th width="125" style="min-width: 125px;">Fecha</th>
-                        <th style="min-width: 200px;">Artículo</th>
-                        <th width="135" class="text-right" style="min-width: 135px;">Estado</th>
-                        <th width="150" class="text-right" style="min-width: 150px;">Cantidad a amortizar</th>
-                        {if="$fsc->fecha_cambio == null"}
-                        <th width="225" class="text-right" style="min-width: 225px;">Contabilizar</th>
-                        {/if}
-                     </tr>
-                  </thead>
-                  <tbody>
-                     {loop="$fsc->listado_lineas"}
-                     <tr>
-                        <td>
-                           <input name="contabilizada_{$value->ano}_{$value->periodo}" class="form-control hidden" value="{$value->contabilizada}" readonly/>
-                           <input name="id_amortizacion_{$value->ano}_{$value->periodo}" class="form-control hidden" value="{$value->id_amortizacion}" readonly/>
-                           <input name="id_linea_{$value->ano}_{$value->periodo}" class="form-control hidden" value="{$value->id_linea}" readonly/>
-                           <input name="ano_{$value->ano}_{$value->periodo}" class="form-control" value="{$value->ano}" readonly/>
-                        </td>
-                        <td>
-                           <input name="periodo_{$value->ano}_{$value->periodo}" class="form-control text-center" value="{$value->periodo}" readonly/>
-                        </td>
-                        <td>
-                           <input name="fecha_{$value->ano}_{$value->periodo}" class="form-control datepicker text-right" value="{$value->fecha}"
-                                  {if="$value->contabilizada == 1 || $fsc->amortizacion->fin_vida_util == 1"}
-                           readonly
-                           {/if}/>
-                        </td>
-                        <td>
-                           <input name="descripcion_{$value->ano}_{$value->periodo}" class="form-control" value="{$fsc->amortizacion->descripcion}" readonly/>
-                        </td>
-                        <td>
-                           <input name="estado_{$value->ano}_{$value->periodo}" class="form-control" readonly
-                                  {if="$value->contabilizada == 1"}
-                                  value="Contabilizada"
-                                  {else}
-                                  {if="$fsc->amortizacion->fin_vida_util == 1 || $fsc->amortizacion->vendida == 1"}
-                                  value="Finalizada"
-                                  {else}
-                                  value="Pendiente"
-                                  {/if}{/if}
-                        </td>
-                        <td>
-                           <input name="cantidad_{$value->ano}_{$value->periodo}" class="form-control text-right"value="{$value->cantidad}"
-                           {if="$value->contabilizada == 1 || $fsc->amortizacion->fin_vida_util == 1 || $fsc->amortizacion->vendida == 1"}
-                           readonly
-                           {/if}/>
-                        </td>
-                        {if="$fsc->fecha_cambio == null"}
-                        <td style="text-align: right;">
-                           <div style="width: 208px;">
-                              {if="$value->contabilizada == 1"}
-                              <div class="btn-group">
-                                 <a class="btn btn-sm btn-primary" target="_blank" href="index.php?page=contabilidad_asiento&id={$value->id_asiento}">
-                                    <span>Ver asiento</span>
-                                 </a>
-                                 <a class="btn btn-sm btn-danger" href="index.php?page=editar_amortizacion&id={$fsc->amortizacion->id_amortizacion}&delete={$value->id_linea}">
-                                    <span>Eliminar asiento</span>
-                                 </a>
-                              </div>
-                              {else}
-                              {if="$fsc->amortizacion->fin_vida_util == 0 && $fsc->amortizacion->vendida == 0"}
-                              <a class="btn btn-sm btn-success" style="width: 208px;" href="index.php?page=amortizaciones&count={$value->id_linea}">
-                                 <span>Contabilizar</span>
-                              </a>
-                              {/if}
-                              {/if}
-                           </div>
-                        </td>
-                        {/if}
-                     </tr>
-                     {/loop}
-                  </tbody>
-               </table>
+         <br/>
+            <div class="tab-content">
+               {loop="$fsc->listado_lineas"}
+                  <div role="tabpanel" class="tab-pane {if="$key == 1"}active{/if}" id="lineas_{$key}">
+
+                     <div class="table-responsive">
+                        <table class="table table-hover">
+                           <thead>
+                              <tr>
+                                 <th width="100" style="min-width: 100px;">Año Fiscal</th>
+                                 <th width="65" style="min-width: 65px;">Periodo</th>
+                                 <th width="125" style="min-width: 125px;">Fecha</th>
+                                 <th style="min-width: 200px;">Artículo</th>
+                                 <th width="135" class="text-right" style="min-width: 135px;">Estado</th>
+                                 <th width="150" class="text-right" style="min-width: 150px;">Cantidad a amortizar</th>
+                                 {if="$fsc->fecha_cambio == null"}
+                                 <th width="225" class="text-right" style="min-width: 225px;">Contabilizar</th>
+                                 {/if}
+                              </tr>
+                           </thead>
+                           <tbody>
+                              {loop="$value"}
+                              <tr>
+                                 <td>
+                                    <input name="contabilizada_{$value->ano}_{$value->periodo}" class="form-control hidden" value="{$value->contabilizada}" readonly/>
+                                    <input name="id_amortizacion_{$value->ano}_{$value->periodo}" class="form-control hidden" value="{$value->id_amortizacion}" readonly/>
+                                    <input name="id_linea_{$value->ano}_{$value->periodo}" class="form-control hidden" value="{$value->id_linea}" readonly/>
+                                    <input name="ano_{$value->ano}_{$value->periodo}" class="form-control" value="{$value->ano}" readonly/>
+                                 </td>
+                                 <td>
+                                    <input name="periodo_{$value->ano}_{$value->periodo}" class="form-control text-center" value="{$value->periodo}" readonly/>
+                                 </td>
+                                 <td>
+                                    <input name="fecha_{$value->ano}_{$value->periodo}" class="form-control datepicker text-right" value="{$value->fecha}"
+                                           {if="$value->contabilizada == 1 || $fsc->amortizacion->fin_vida_util == 1"}
+                                    readonly
+                                    {/if}/>
+                                 </td>
+                                 <td>
+                                    <input name="descripcion_{$value->ano}_{$value->periodo}" class="form-control" value="{$fsc->amortizacion->descripcion}" readonly/>
+                                 </td>
+                                 <td>
+                                    <input name="estado_{$value->ano}_{$value->periodo}" class="form-control" readonly
+                                           {if="$value->contabilizada == 1"}
+                                           value="Contabilizada"
+                                           {else}
+                                           {if="$fsc->amortizacion->fin_vida_util == 1 || $fsc->amortizacion->vendida == 1"}
+                                           value="Finalizada"
+                                           {else}
+                                           value="Pendiente"
+                                           {/if}{/if}
+                                 </td>
+                                 <td>
+                                    <input name="cantidad_{$value->ano}_{$value->periodo}" class="form-control text-right"value="{$value->cantidad}"
+                                           {if="$value->contabilizada == 1 || $fsc->amortizacion->fin_vida_util == 1 || $fsc->amortizacion->vendida == 1"}
+                                    readonly
+                                    {/if}/>
+                                 </td>
+                                 {if="$fsc->fecha_cambio == null"}
+                                 <td style="text-align: right;">
+                                    <div style="width: 208px;">
+                                       {if="$value->contabilizada == 1"}
+                                       <div class="btn-group">
+                                          <a class="btn btn-sm btn-primary" target="_blank" href="index.php?page=contabilidad_asiento&id={$value->id_asiento}">
+                                             <span>Ver asiento</span>
+                                          </a>
+                                          <a class="btn btn-sm btn-danger" href="index.php?page=editar_amortizacion&id={$fsc->amortizacion->id_amortizacion}&delete={$value->id_linea}">
+                                             <span>Eliminar asiento</span>
+                                          </a>
+                                       </div>
+                                       {else}
+                                       {if="$fsc->amortizacion->fin_vida_util == 0 && $fsc->amortizacion->vendida == 0"}
+                                       <a class="btn btn-sm btn-success" style="width: 208px;" href="index.php?page=amortizaciones&count={$value->id_linea}">
+                                          <span>Contabilizar</span>
+                                       </a>
+                                       {/if}
+                                       {/if}
+                                    </div>
+                                 </td>
+                                 {/if}
+                              </tr>
+                              {/loop}
+                           </tbody>
+                        </table>
+                     </div>
+                  </div>
+               {/loop}
             </div>
+            
+            <nav aria-label="Page navigation" class="text-center">
+               <ul class="pagination" role="tablist">
+                  {loop="$fsc->listado_lineas"}
+                  <li role="presentation" class="{if="$key == 1"}active{/if}"><a href="#lineas_{$key}" aria-controls="lineas_{$key}" role="tab" data-toggle="tab">{$key}</a></li>
+                  {/loop}
+               </ul>
+            </nav>
+            
+         </div>
+         
+         <div role="tabpanel" class="tab-pane" id="lineas">
+            <br/>
+            
             </form>
          </div>
          <div role="tabpanel" class="tab-pane" id="subcuentas">
@@ -638,7 +660,9 @@
          <div class="modal-body">
             Si decide <b>eliminar</b>, la amortización se borrará de la base de datos y no se podrá reanudar. Los asientos contables que se han creado permaneceran en la contabilidad.
             <br/><br/>
-            Si decide <b>anular</b> la amortización, esta no aparecerá en la pestaña pendientes de las amortizaciones, pero podrá seguir generando los asientos a través de esta misma página,
+            Si decide <b>anular</b> la amortización, no se generaran los asientos automticamente mendiante CRON y 
+            tampoco aparecerá en la pestaña pendientes de las amortizaciones, 
+            pero podrá seguir generando los asientos a través de esta misma página,
             puedes <b>reanudar</b> la amortización más adelante. 
          </div>
          <div class="modal-footer">

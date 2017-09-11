@@ -17,6 +17,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+require_model('amortizacion.php');
+require_model('asiento.php');
+
 class linea_amortizacion extends fs_model
 {
     /**
@@ -142,7 +146,6 @@ class linea_amortizacion extends fs_model
     public function all()
     {
         $lista = array();
-        $ano_fiscal = date('Y');
 
         $sql = $this->db->select("SELECT * FROM lineasamortizaciones ORDER BY ano;");
         if ($sql) {
@@ -292,33 +295,7 @@ class linea_amortizacion extends fs_model
             return false;
         }
     }
-    
-    /**
-     * @param $fecha
-     * @param $ano_antes
-     * @return array
-     */
-    public function slope_old($fecha,$ano_antes)
-    {
-        $lista = array();
-
-        $sql = $this->db->select("SELECT L.ano, L.cantidad, L.contabilizada, L.fecha, L.idamortizacion, L.idasiento, L.idlinea, L.periodo
-                                FROM amortizaciones A, lineasamortizaciones L 
-                                WHERE A.idamortizacion = L.idamortizacion 
-                                AND L.contabilizada = FALSE 
-                                AND A.finvidautil = FALSE 
-                                AND A.amortizando = TRUE 
-                                AND L.fecha >= " . $this->var2str($ano_antes) . "
-                                AND L.fecha <= " . $this->var2str($fecha) . " 
-                                ORDER BY fecha;");
-        if ($sql) {
-            foreach ($sql as $d) {
-                $lista[] = new linea_amortizacion ($d);
-            }
-        }
-        return $lista;
-    }
-    
+        
     /**
      * @param $fecha
      * @param $ano_antes
@@ -340,7 +317,48 @@ class linea_amortizacion extends fs_model
         }
         return $lista;
     }
+    
+    public function today()
+    {
+        $lista = array();
+        $fecha = date('Y-m-d');
+        $tres_meses = date('Y-m-d', strtotime($fecha . '- 3 month'));
+        
+        $sql = $this->db->select("SELECT * FROM lineasamortizaciones WHERE 
+                                 fecha >= " . $this->var2str($tres_meses) . " AND 
+                                 fecha <= " . $this->var2str($fecha) . " AND 
+                                 contabilizada = FALSE
+                                ORDER BY fecha;");
+        if ($sql) {
+            foreach ($sql as $d) {
+                $lista[] = new linea_amortizacion ($d);
+            }
+        }
+        return $lista;
+    }
 
+    /**
+     * @param $id_linea
+     */
+    public function eliminar_asiento($id_linea)
+    {
+        $lineas_amortizaciones = new linea_amortizacion();
+        $asiento = new asiento();
+        $linea = $lineas_amortizaciones->get_by_id_linea($id_linea);
+        $asiento_amortizacion = $asiento->get($linea->id_asiento);
+        
+        if (!$asiento_amortizacion) {
+            $lineas_amortizaciones->discount($id_linea);
+            return TRUE;
+        } elseif ($asiento_amortizacion->delete()) {
+            $lineas_amortizaciones->discount($id_linea);
+            return TRUE;
+        } else {
+            $this->new_message('No se ha podido eliminar el asiento');
+            return FALSE;
+        }
+    }
+    
     /**
      * @return string
      */

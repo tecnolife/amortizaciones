@@ -148,7 +148,12 @@ class amortizaciones extends fs_controller
         $ejercicio = $eje->get_by_fecha($factura_cliente->fecha);
         $articulo = $art->get($referencia);
         $valor_venta = $valor_venta * $cantidad;
-                
+        
+        $ultima_linea = $linea_amor->get_by_id_linea($id_linea_amortizacion);
+        
+        if ($ultima_linea->contabilizada == 1) {
+            $linea_amor->eliminar_asiento($id_linea_amortizacion);
+        }
         if ($valor_ultima_linea != 0) {
             $this->contabilizar_fin_vida($id_linea_amortizacion, $valor_ultima_linea, $fecha_ultima_linea);
         }

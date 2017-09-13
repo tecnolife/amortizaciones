@@ -17,6 +17,7 @@ https://www.facturascripts.com
    <li>Mejorar la paginación</li>
    <li>Agregar más pestañas en "amortizaciones", a parte de "pendientes", "anuladas", "completadas", "vida útil finalizada", o un desplagable que actue de filtro.</li>
    <li>-Si nos referimos a la paginación de la página "amortizaciones" no tiene mucho lio, sería coger cualquier optra paginación y adaptarla, la de los articulos por ejemplo.</li>
+   <li>Enlaces a los asientos creados a contabilizar, finalizar o vender una amortización.</li>
 </ul>
 
 <br/>
@@ -27,7 +28,10 @@ https://www.facturascripts.com
    <li>Idea: Comprobar si todos los asientos de las líneas contabilizadas existen con CRON.</li>
    <li>Dentro de "editar_amortizacion", si le das a "Modificar, cambiar fecha" y despues pulsas en el botón "Ver periodos para los diferentes amortizados",
    el boton "Modificar" y todos los menus desplegables dejan de funcionar, también ocurre al crear una amortización y darle a los botones verdes que sacan ventanas emergentes, 
-   estos botones acceden a un html externo a traves de javascript, es un error muy raro, porque a veces funciona y a veces no</li> 
+   estos botones acceden a un html externo a traves de javascript, es un error muy raro, porque a veces funciona y a veces no</li>
+   <li>Si al crear o eliminar un asiento desde editar_amortizacion sale un error como este "Error al eliminar tmp/7Yxb2c6WwSlX1OKUJHmM/libro_mayor/143.pdf".</li>
+   <li>Es un error de permisos, y se debe ejecutar el siguiente comando.</li>
+   <li>chmod -R o+w /donde/este/la/carpeta</li>
 </ul>
 
 <br/>
@@ -79,5 +83,16 @@ https://www.facturascripts.com
    <li>Paginación para las líneas al crear o editar amortizaciones</li>
    <li>Mejorar la visualización de las amortizaciones con colores</li>
    <li>Solucionado error al crear el asiento de "Finalizar vida útil" de una amortizacion</li>
+</ul>
+<br/>
+
+<br/>
+<strong>v9</strong> 
+<ul>
+   <li></li>
+</ul>
+<strong>Aviso</strong> 
+<ul>
+   <li>Mejoras de código</li>
 </ul>
 <br/>

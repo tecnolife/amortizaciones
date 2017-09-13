@@ -74,14 +74,12 @@ class vender_amortizacion extends fs_controller
         $factura = new factura_cliente();
         $amortizacion = new amortizacion();
         
-        $this->factura = $factura->get_by_codigo(filter_input(INPUT_POST, 'factura_codigo'));
         $this->amortizacion = $amortizacion->get_by_amortizacion(filter_input(INPUT_POST, 'id_amortizacion', FILTER_VALIDATE_INT));
-        
-        if (isset($this->factura->idasiento)) {
+        if ( $factura->get_by_codigo(filter_input(INPUT_POST, 'factura_codigo'))) {
+            $this->factura = $factura->get_by_codigo(filter_input(INPUT_POST, 'factura_codigo'));
             $this->calcular($this->amortizacion->id_amortizacion, $this->factura->fecha);
         } else {
-            $this->new_error_msg('Esta factura no tiene un asiento relacionado, y por tanto no se puede modificar para contabilizar la venta');
-            $this->new_error_msg('Entra a la factura y genera el asiento, despues podras contabilizar la venta');
+            $this->new_error_msg('Factura no válida');
         }
     }
 
@@ -108,11 +106,7 @@ class vender_amortizacion extends fs_controller
         $this->valor_ultima_linea = round($this->ultima_linea->cantidad/$dias_periodo * $dias_a_amortizar,2);
         $this->sin_amortizar = $this->ultima_linea->cantidad - $this->valor_ultima_linea;
         $this->amortizado = $this->valor_ultima_linea;
-        
-        if ($this->ultima_linea->contabilizada == 1) {
-            $this->eliminar_asiento($this->ultima_linea->id_linea);
-        }
-        
+                
         $lineas = $lin->get_by_amortizacion($id_amortizacion);
         $amortizado = 0;
         $sin_amortizar = 0;
@@ -125,27 +119,6 @@ class vender_amortizacion extends fs_controller
             } else {
                 $this->sin_amortizar += $value->cantidad;
             }
-        }
-    }
-    
-    /**
-     * @param $id_linea
-     */
-    private function eliminar_asiento($id_linea)
-    {
-        $lineas_amortizaciones = new linea_amortizacion();
-        $asiento = new asiento();
-        $linea = $lineas_amortizaciones->get_by_id_linea($id_linea);
-        $asiento_amortizacion = $asiento->get($linea->id_asiento);
-        
-        if (!$asiento_amortizacion) {
-            $lineas_amortizaciones->discount($id_linea);
-            $this->new_message('El asiento había sido eliminado manualmente desde la contabilidad, es mejor que el asiento sea eliminado desde la amortización');
-        } elseif ($asiento_amortizacion->delete()) {
-            $lineas_amortizaciones->discount($id_linea);
-            $this->new_message('Asiento eliminado');
-        } else {
-            $this->new_message('No se ha podido eliminar el asiento');
         }
     }
 

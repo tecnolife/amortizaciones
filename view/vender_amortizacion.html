@@ -7,11 +7,12 @@
          <div class="btn-group">
             <a class="btn btn-sm btn-default" href="index.php?page=editar_amortizacion&id={$fsc->amortizacion->id_amortizacion}">
                <span class="glyphicon glyphicon-arrow-left"></span>
-               <span class="hidden-xs hidden-sm">&nbsp;Amortizaciones</span>
+               <span class="hidden-xs hidden-sm">&nbsp;Amortización</span>
             </a>
          </div>
       </div>
    </div>
+   {if="$fsc->factura != null"}
    
    <div class="row">
       <div class="col-sm-12">
@@ -137,6 +138,7 @@
          </div>
       </div>
    </div>   
+   {/if}
    
 </div>
 

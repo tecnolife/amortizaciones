@@ -17,18 +17,21 @@ https://www.facturascripts.com
    <li>Mejorar la paginación</li>
    <li>Agregar más pestañas en "amortizaciones", a parte de "pendientes", "anuladas", "completadas", "vida útil finalizada", o un desplagable que actue de filtro.</li>
    <li>-Si nos referimos a la paginación de la página "amortizaciones" no tiene mucho lio, sería coger cualquier optra paginación y adaptarla, la de los articulos por ejemplo.</li>
-   <li>Enlaces a los asientos creados a contabilizar, finalizar o vender una amortización.</li>
 </ul>
 
 <br/>
 <strong>Errores:</strong>
 <ul>
    <li>Si un asiento se elimina desde la contabidad/asientos, la amortización no lo tendra en cuenta, y este aparecera como contabilizado en "editar_amortizacion".</li>
-   <li>SOLUCIÓN, sacar "Cambiar fecha" y "Aumentar valor" del desplegable.</li>
    <li>Idea: Comprobar si todos los asientos de las líneas contabilizadas existen con CRON.</li>
    <li>Dentro de "editar_amortizacion", si le das a "Modificar, cambiar fecha" y despues pulsas en el botón "Ver periodos para los diferentes amortizados",
    el boton "Modificar" y todos los menus desplegables dejan de funcionar, también ocurre al crear una amortización y darle a los botones verdes que sacan ventanas emergentes, 
    estos botones acceden a un html externo a traves de javascript, es un error muy raro, porque a veces funciona y a veces no</li>
+</ul>
+
+<br/>
+<strong>Soluciones:</strong>
+<ul>
    <li>Si al crear o eliminar un asiento desde editar_amortizacion sale un error como este "Error al eliminar tmp/7Yxb2c6WwSlX1OKUJHmM/libro_mayor/143.pdf".</li>
    <li>Es un error de permisos, y se debe ejecutar el siguiente comando.</li>
    <li>chmod -R o+w /donde/este/la/carpeta</li>
@@ -95,4 +98,14 @@ https://www.facturascripts.com
 <ul>
    <li>Mejoras de código</li>
 </ul>
+
 <br/>
+<strong>v10</strong> 
+<ul>
+   <li></li>
+</ul>
+<strong>Aviso</strong> 
+<ul>
+   <li>Mejorar la descripción</li>
+   <li>Mensaje de aviso si no hay ninguna amortización creada</li>
+</ul>

@@ -49,6 +49,14 @@
                         <th width="120" class="text-right" style="min-width: 120px;">Estado</th>
                      </tr>
                   </thead>
+
+                  {if="$fsc->listado == null"}
+                  <tbody><tr class="warning">
+                        <td colspan="9">No hay ninguna amortización creada, abre una factura y pulsa sobre el botón "Amortizar" para cear una amortización.</td>
+                     </tr>
+                  </tbody>
+                  {/if}
+
                   <tbody>
                      {loop="$fsc->listado"}
                      <tr class='clickableRow

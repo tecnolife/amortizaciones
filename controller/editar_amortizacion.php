@@ -148,11 +148,11 @@ class editar_amortizacion extends fs_controller
         } elseif (filter_input(INPUT_GET, 'new_counts', FILTER_VALIDATE_INT) !== null) {
             $this->insertar_cuentas_contables(
                     filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT), 
-                    filter_input(INPUT_POST, 'cod_subcuenta_beneficios', FILTER_VALIDATE_INT), 
-                    filter_input(INPUT_POST, 'cod_subcuenta_cierre', FILTER_VALIDATE_INT), 
-                    filter_input(INPUT_POST, 'cod_subcuenta_debe', FILTER_VALIDATE_INT), 
-                    filter_input(INPUT_POST, 'cod_subcuenta_haber', FILTER_VALIDATE_INT), 
-                    filter_input(INPUT_POST, 'cod_subcuenta_perdidas', FILTER_VALIDATE_INT));
+                    filter_input(INPUT_POST, 'cod_subcuenta_beneficios'), 
+                    filter_input(INPUT_POST, 'cod_subcuenta_cierre'), 
+                    filter_input(INPUT_POST, 'cod_subcuenta_debe'), 
+                    filter_input(INPUT_POST, 'cod_subcuenta_haber'), 
+                    filter_input(INPUT_POST, 'cod_subcuenta_perdidas'));
         } elseif (filter_input(INPUT_GET, 'increase') !== null) {
             $this->aumentar_valor(filter_input(INPUT_POST, 'fecha'), filter_input(INPUT_POST, 'valor', FILTER_VALIDATE_INT));
         }

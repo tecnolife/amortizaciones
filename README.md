@@ -14,9 +14,12 @@ https://www.facturascripts.com
 <strong>Tareas pendientes:</strong>
 <ul>
    <li>Introducir más tipos de contabilización, actualmente solo se soporta "Constante", hay que añadir el método de "Suma de digitos".</li>
+   <li>Terrenos y bienes naturales, habría que poner la 281 Amortización Acumulada Inmovilizado Material</li>
+   <li>Fondo de comercio, habría que poner la 2804 Amortización acumulada del fondo de comercio</li>
+   <li>La cuenta 281 y la 2804 no están en el plan contable de FacturaScripts</li>
    <li>Mejorar la paginación</li>
    <li>Agregar más pestañas en "amortizaciones", a parte de "pendientes", "anuladas", "completadas", "vida útil finalizada", o un desplagable que actue de filtro.</li>
-   <li>-Si nos referimos a la paginación de la página "amortizaciones" no tiene mucho lio, sería coger cualquier optra paginación y adaptarla, la de los articulos por ejemplo.</li>
+   <li>-Si nos referimos a la paginación de la página "amortizaciones" no tiene mucho lio, sería coger cualquier otra paginación y adaptarla, la de los articulos por ejemplo.</li>
 </ul>
 
 <br/>

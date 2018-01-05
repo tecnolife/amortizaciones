@@ -101,14 +101,27 @@ https://www.facturascripts.com
 <ul>
    <li>Mejoras de código</li>
 </ul>
+<br/>
 
 <br/>
 <strong>v10</strong> 
 <ul>
-   <li></li>
-</ul>
-<strong>Aviso</strong> 
-<ul>
    <li>Mejorar la descripción</li>
    <li>Mensaje de aviso si no hay ninguna amortización creada</li>
+</ul>
+<br/>
+
+<br/>
+<strong>v11</strong>
+<ul>
+   <li>Añadri un par de cuentas a la tabla de subcuentas</li>
+   <li>Eliminar la comprobación int de las subcuentas, porque los sistemas de 32bits no admiten números tan altos, 
+   sobre todo en windows, porque XAMPP solo está disponible en 32 bits para Windows</li>
+</ul>
+
+<br/>
+<strong>v11</strong>
+<ul>
+   <li>Eliminar la comprobación int de las subcuentas, porque los sistemas de 32bits no admiten números tan altos, 
+   sobre todo en windows, porque XAMPP solo está disponible en 32 bits para Windows, no se porque no lo hice en la versión anterior</li>
 </ul>

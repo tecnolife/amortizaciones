@@ -324,11 +324,13 @@ class amortizaciones extends fs_controller
             $amor->periodos = filter_input(INPUT_POST, 'periodos', FILTER_VALIDATE_INT);
             $amor->fecha_fin = filter_input(INPUT_POST, 'fecha_fin');
         } else {
+            //Cuando se pase todo a 64 bits, dentro de un tiempo añadir FILTER_VALIDATE_INT filter_input(INPUT_POST, 'cod_subcuenta_beneficios', FILTER_VALIDATE_INT) para comprobar las subcuentas
             $amor->cod_subcuenta_beneficios = filter_input(INPUT_POST, 'cod_subcuenta_beneficios');
             $amor->cod_subcuenta_cierre = filter_input(INPUT_POST, 'cod_subcuenta_cierre');
             $amor->cod_subcuenta_debe = filter_input(INPUT_POST, 'cod_subcuenta_debe');
             $amor->cod_subcuenta_haber = filter_input(INPUT_POST, 'cod_subcuenta_haber');
             $amor->cod_subcuenta_perdidas = filter_input(INPUT_POST, 'cod_subcuenta_perdidas');
+            //Hasta aquí
             $amor->contabilizacion = filter_input(INPUT_POST, 'contabilizacion');
             $amor->descripcion = filter_input(INPUT_POST, 'descripcion');
             $amor->fecha_fin = filter_input(INPUT_POST, 'fecha_fin');

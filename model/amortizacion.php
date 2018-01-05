@@ -145,11 +145,13 @@ class amortizacion extends fs_model
             $this->amortizando = $this->str2bool($t['amortizando']);
             $this->coddivisa = $t['coddivisa'];
             $this->codserie = $t['codserie'];
-            $this->cod_subcuenta_beneficios = $this->intval($t['codsubcuentabeneficios']);
-            $this->cod_subcuenta_cierre = $this->intval($t['codsubcuentacierre']);
-            $this->cod_subcuenta_debe = $this->intval($t['codsubcuentadebe']);
-            $this->cod_subcuenta_haber = $this->intval($t['codsubcuentahaber']);
-            $this->cod_subcuenta_perdidas = $this->intval($t['codsubcuentaperdidas']);
+            //Cuando se pase todo a 64 bits, dentro de un tiempo añadir $this->intval() para comprobar las subcuentas
+            $this->cod_subcuenta_beneficios = $t['codsubcuentabeneficios'];
+            $this->cod_subcuenta_cierre = $t['codsubcuentacierre'];
+            $this->cod_subcuenta_debe = $t['codsubcuentadebe'];
+            $this->cod_subcuenta_haber = $t['codsubcuentahaber'];
+            $this->cod_subcuenta_perdidas = $t['codsubcuentaperdidas'];
+            //Hasta aquí
             $this->completada = $this->str2bool($t['completada']);
             $this->contabilizacion = $t['contabilizacion'];
             $this->descripcion = $t['descripcion'];
